@@ -1,0 +1,61 @@
+class WFHyperblasterMesh extends WFMeshImports;
+
+//firstperson
+#exec MESH IMPORT MESH=Hyperfirst ANIVFILE=MODELS\Hyperfirst_a.3d DATAFILE=MODELS\Hyperfirst_d.3d X=0 Y=0 Z=0
+#exec MESH ORIGIN MESH=Hyperfirst X=0 Y=0 Z=0
+
+#exec MESH SEQUENCE MESH=Hyperfirst SEQ=All    STARTFRAME=0 NUMFRAMES=33
+#exec MESH SEQUENCE MESH=Hyperfirst SEQ=Still  STARTFRAME=0 NUMFRAMES=1
+#exec MESH SEQUENCE MESH=Hyperfirst SEQ=Still2 STARTFRAME=1 NUMFRAMES=1
+#exec MESH SEQUENCE MESH=Hyperfirst SEQ=Fire1  STARTFRAME=2 NUMFRAMES=5
+#exec MESH SEQUENCE MESH=Hyperfirst SEQ=Fire2  STARTFRAME=7 NUMFRAMES=4
+#exec MESH SEQUENCE MESH=Hyperfirst SEQ=Select STARTFRAME=11 NUMFRAMES=11
+#exec MESH SEQUENCE MESH=Hyperfirst SEQ=Down   STARTFRAME=22 NUMFRAMES=11
+
+#exec TEXTURE IMPORT NAME=JHyperfirst1 FILE=MODELS\hyper1.PCX GROUP=Skins FLAGS=2 // Front
+#exec TEXTURE IMPORT NAME=JHyperfirst2 FILE=MODELS\hyper2.PCX GROUP=Skins PALETTE=JHyperfirst1 // BottomMid
+#exec TEXTURE IMPORT NAME=JHyperfirst3 FILE=MODELS\hyper3.PCX GROUP=Skins PALETTE=JHyperfirst1 // TopMid
+#exec TEXTURE IMPORT NAME=JHyperfirst4 FILE=MODELS\hyper4.PCX GROUP=Skins PALETTE=JHyperfirst1 // GripArea
+
+#exec MESHMAP NEW   MESHMAP=Hyperfirst MESH=Hyperfirst
+#exec MESHMAP SCALE MESHMAP=Hyperfirst X=0.1 Y=0.1 Z=0.2
+
+#exec MESHMAP SETTEXTURE MESHMAP=Hyperfirst NUM=1 TEXTURE=JHyperfirst1
+#exec MESHMAP SETTEXTURE MESHMAP=Hyperfirst NUM=2 TEXTURE=JHyperfirst2
+#exec MESHMAP SETTEXTURE MESHMAP=Hyperfirst NUM=3 TEXTURE=JHyperfirst3
+#exec MESHMAP SETTEXTURE MESHMAP=Hyperfirst NUM=4 TEXTURE=JHyperfirst4
+
+//thirdperson
+#exec MESH IMPORT MESH=hyperthird ANIVFILE=MODELS\hyperthird_a.3d DATAFILE=MODELS\hyperthird_d.3d X=0 Y=0 Z=0
+#exec MESH ORIGIN MESH=hyperthird X=-680 Y=0 Z=-100
+
+#exec MESH SEQUENCE MESH=hyperthird SEQ=All        STARTFRAME=0 NUMFRAMES=1
+#exec MESH SEQUENCE MESH=hyperthird SEQ=Hyperthird STARTFRAME=0 NUMFRAMES=1
+
+#exec TEXTURE IMPORT NAME=Jhyperthird0 FILE=MODELS\hyper3rd.PCX GROUP=Skins FLAGS=2 // Skin
+
+#exec MESHMAP NEW   MESHMAP=hyperthird MESH=hyperthird
+#exec MESHMAP SCALE MESHMAP=hyperthird X=0.1 Y=0.1 Z=0.2
+
+#exec MESHMAP SETTEXTURE MESHMAP=hyperthird NUM=0 TEXTURE=Jhyperthird0
+
+//pickupview
+#exec MESH IMPORT MESH=hyperpick ANIVFILE=MODELS\hyperthird_a.3d DATAFILE=MODELS\hyperthird_d.3d X=0 Y=0 Z=0
+#exec MESH ORIGIN MESH=hyperpick X=0 Y=0 Z=0
+
+#exec MESH SEQUENCE MESH=hyperpick SEQ=All        STARTFRAME=0 NUMFRAMES=1
+#exec MESH SEQUENCE MESH=hyperpick SEQ=Hyperthird STARTFRAME=0 NUMFRAMES=1
+
+#exec TEXTURE IMPORT NAME=Jhyperpick0 FILE=MODELS\hyper3rd.PCX GROUP=Skins FLAGS=2 // Skin
+
+#exec MESHMAP NEW   MESHMAP=hyperpick MESH=hyperpick
+#exec MESHMAP SCALE MESHMAP=hyperpick X=0.1 Y=0.1 Z=0.2
+
+#exec MESHMAP SETTEXTURE MESHMAP=hyperpick NUM=0 TEXTURE=Jhyperpick0
+
+// WFHyperbeam
+#exec MESH IMPORT MESH=WFHyperbeam ANIVFILE=MODELS\WFHyperbeam_a.3d DATAFILE=MODELS\WFHyperbeam_d.3d X=0 Y=0 Z=0
+#exec MESH ORIGIN MESH=WFHyperbeam X=0 Y=0 Z=0
+
+#exec MESH SEQUENCE MESH=WFHyperbeam SEQ=All     STARTFRAME=0 NUMFRAMES=1
+#exec MESH SEQUENCE MESH=WFHyperbeam SEQ=hyperbm     STARTFRAME=0 NUMFRAMES=1

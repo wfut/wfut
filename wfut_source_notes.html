@@ -1,0 +1,440 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>Weapons Factory Source</title>
+</head>
+
+<body>
+
+<h1 align="center"><font color="#000000"><em>Weapons Factory
+Source</em></font></h1>
+
+<p align="left"><font color="#000000"><strong>Last updated:</strong>
+16th October 2000</font></p>
+
+<h2 align="left"><font color="#000000">Contents</font></h2>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="100%"><ul>
+            <li><em>Introduction</em></li>
+            <li><em>Compiling the WF Packages</em></li>
+            <li><em>Bot Support Notes</em></li>
+            <li><em>Player Class System Notes</em><ul>
+                    <li><em>Important Classes</em></li>
+                    <li><em>Brief Class Reference</em><ul>
+                            <li><em>WFMedia</em></li>
+                            <li><em>WFData</em></li>
+                            <li><em>WFSystem</em></li>
+                            <li><em>WFCode</em></li>
+                            <li><em>WFWeapons</em></li>
+                            <li><em>WFPlayerClasses</em></li>
+                            <li><em>WFMenu</em></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><em>Scripting Notes</em></li>
+            <li><em>Typical Game Flow</em></li>
+        </ul>
+        </td>
+    </tr>
+</table>
+
+<h2><font color="#000000">Introduction</font></h2>
+
+<p>This document doesn't go in to much detail I'm afraid, so if
+you have any WFUT code related questions then <a
+href="mailto:ob1@planetunreal.com">let me know</a> and I'll
+answer them for you. I'll also try to add things to a main source
+document, so it'll help cover the other areas of the code and can
+be used for future reference.</p>
+
+<p>This class structure works assuming that the UT engine can
+distinguish between two references to classes that have the same
+name but reside in different packages. There aren't any classes
+with the same name anywhere within the WF source code, but if
+another mod uses the PCSystem code and has the package loaded in
+memory when WF is loaded by the Engine, then there would be two
+classes with the same (but within different packages) in memory.
+As I see things, this shouldn't cause any problems as <font
+size="2" face="Courier New">class'ModOne.SomeClass'</font> is a
+different class than <font size="2" face="Courier New">class'ModTwo.SomeClass'</font>
+and would have different type identifiers. If it turns out that
+this doesn't work and would cause problems if implemented this
+way, then I'll add 'WF_' to each of the class names which <em><strong>will</strong></em>
+work.</p>
+
+<p>These are the current WF packages: </p>
+
+<ul>
+    <li><strong>WFMedia</strong> -- Contains all imported sounds,
+        meshes, and textures for WF.</li>
+    <li><strong>WFData</strong> -- Contains animation data for
+        the DPMS code.</li>
+    <li><strong>WFSystem</strong> -- This contains all the
+        PCSystem code. I created a separate package for it
+        because I figured that it would slow down the compile
+        time of the main WF source code otherwise.</li>
+    <li><strong>WFCode</strong> -- This is where all the main WF
+        game related code and content (game critical items, game
+        code, etc.) is localted.</li>
+    <li><strong>WFWeapons</strong> -- Contains all the code for
+        the WF weapons. This package might be merged with <em>WFCode</em>
+        or <em>WFPlayerClasses</em> before release.</li>
+    <li><strong>WFPlayerClasses</strong> -- Player class related
+        code; PCI for each class, online help, abilities, and
+        items.</li>
+    <li><strong>WFMenu</strong> -- Configuration and setup menus
+        used by the game code.</li>
+</ul>
+
+<p>Add any new WF game related related classes to the <em>WFCode</em>
+package, and player class related code to WFPlayerClasses</p>
+
+<p>The Recon's <font color="#0000A0"><em>HUDInfo</em></font>
+extended hud class makes use of the <strong>ITSHUD</strong> code
+by Mac and Mek from <a
+href="http://www.planetunreal.com/unrealistic/">Unrealistic</a>
+for the targeting brakets. To use the ITSHUD code in a <font
+color="#0000A0"><em>HUDInfo</em></font> class, sub-class <font
+color="#0000A0"><em>ITSHUDInfo</em></font>.</p>
+
+<h2><font color="#000000">Compiling the WF Packages</font></h2>
+
+<p>Extract each of the source file zips to the UT folder so that
+the files are extracted to
+&quot;&lt;UT&gt;\&lt;zip-name&gt;\&quot; using folder names where
+&lt;UT&gt; is the path to the UT folder. For example, you'd
+extract files in <em>WFMedia</em> to
+&quot;&lt;UT&gt;\WFMedia\&quot; making sure that you use folder
+names when extracting the files.</p>
+
+<p>Add the packages <em>&quot;UnrealTournament.ini&quot;</em> in
+this order to compile them correctly:</p>
+
+<p><font size="2" face="Courier New">EditPackages=WFMedia<br>
+EditPackages=WFData</font><font face="Courier New"><br>
+</font><font size="2" face="Courier New">EditPackages=WFSystem<br>
+EditPackages=WFCode</font><font face="Courier New"><br>
+</font><font size="2" face="Courier New">EditPackages=WFWeapons</font><font
+face="Courier New"><br>
+</font><font size="2" face="Courier New">EditPackages=WFPlayerClasses<br>
+EditPackages=WFMenu</font></p>
+
+<p>Make sure that <em>WFCode.int</em> and <em>WFPlayerClasses.int
+</em>is in UT's <em>&quot;System&quot;</em> folder to get the
+Weapons Factory game to show up in the UT game menu and so that
+the default class list to show up.</p>
+
+<h2><font color="#000000">Bot Support Notes</font></h2>
+
+<p>There is currently no bot support for the PCSystem. I've
+created PCSystem bot classes with the variables needed for the
+player class system, but as yet there is no AI support for the
+PCI (the PlayerClassInfo class). I'm still thinking about the
+best way to implement it: either have a separate behaviour info
+class as a variable for each of the PCI classes which can then be
+queried by the bot class, or have the actual AI functions in the
+PCI class itself which can then be called by the bot.</p>
+
+<p>There is enough support at the moment to enable bots to know
+what items they are able to collect, but no player class specific
+AI has been added yet.</p>
+
+<h2>Player class system notes</h2>
+
+<p><font size="4"><em><strong>Important classes:</strong></em></font></p>
+
+<p><font face="Courier New"><strong>[PlayerClassInfo]<br>
+</strong></font>This is the main focal point for the PCSystem
+code. It's where all the player class related information is
+defined; starting armor, health, max health, inventory, mesh
+info, skin, sound info, etc. There are also a number of game
+hooks to further modify a player, major game notifications (eg. a
+&quot;TakeDamage&quot; notification), a function used for
+handling special abilities, and functions to do with inventory
+collection that can be used to prevent a player from collecting
+items.</p>
+
+<p><font face="Courier New"><strong>[WFPlayerClassInfo]<br>
+</strong></font>Super-class of the WF player classes. The current
+player classes are: <font color="#0000A0"><em>WFEngineer</em></font>,
+<font color="#0000A0"><em>WFRecon</em></font>, <font
+color="#0000A0"><em>WFInfiltrator</em></font>, <font
+color="#0000A0"><em>WFSniper</em></font>, <font color="#0000A0"><em>WFCyborg</em></font>,
+<font color="#0000A0"><em>WFGunner</em></font>, <font
+color="#0000A0"><em>WFPyrotech</em></font>, <font color="#0000A0"><em>WFFieldMedic</em></font>,
+<font color="#0000A0"><em>WFDemoman</em></font>, <font
+color="#0000A0"><em>WFMarine</em></font>.</p>
+
+<p><font face="Courier New"><strong>[PCIList]<br>
+</strong></font>This is used to list all the player class types
+that are used in game. When creating a new set of player classes,
+list them in a <font color="#0000A0"><em>PCIList.uc</em></font>
+sub-class and modify WFGame so that it uses the list (<font
+color="#0000A0"><em>PCIList.uc</em></font> and <font
+color="#0000A0"><em>TestClassList.uc</em></font> for more info on
+this). Or you can create a plug-in class definition by adding the
+following to the packages .int file:</p>
+
+<p>[Public]<br>
+Object=(Name=PackageName.ClassName,Class=Class,MetaClass=WFSystem.PCIList,Description=&quot;ListName&quot;)</p>
+
+<p>'PackageName.ClassName' is the name of the class list, eg.
+'MyPackage.MyClassDefList'. The description is the name of the
+class list that appears on the menu.</p>
+
+<p>This means that this class definition list can be selected
+from the Settings tab before starting a game. Take a look at <font
+color="#0000A0"><em>WFSettingsCWindow.uc</em></font> for more
+information plug-in class definitions.</p>
+
+<p>The <em>WFPlayerClasses</em> package has a class list for the
+WF player classes (<font color="#0000A0"><em>WFPlayerClassList.uc</em></font><font
+color="#000000">) which is used by default.</font></p>
+
+<p><font face="Courier New"><strong>[WFPlayer]<br>
+</strong></font>If anything needs to be added to the player class
+like special execs, vars, extra functions or states, then add
+them here. If need be they can be added to the PCSystemPlayer
+class later.</p>
+
+<p><font face="Courier New"><strong>[WFGame]<br>
+</strong></font>Add/change game related stuff here. This class
+extends <font color="#0000A0"><em>PCSystemCTFGame.uc</em></font>
+which extends the CTFGame game class to gain the functionality of
+the CTF game type.</p>
+
+<p><font face="Courier New"><strong>[WFPlayerStatus]<br>
+</strong></font>This is the super class of the WF player status
+effects. These are for when a player is: concussed, infected, on
+fire, disguised, frozen, etc.</p>
+
+<p><font size="4"><em><strong>Brief Class reference:</strong></em></font>
+</p>
+
+<ul>
+    <li><font size="4"><em><strong>WFMedia:</strong></em></font></li>
+</ul>
+
+<blockquote>
+    <p><font face="Courier New"><strong>[WFMediaInfo]<br>
+    </strong></font>Abstract super-class of the media import
+    classes. Sub-class this when importing new media for WF, eg.
+    meshes, sound effects, textures, etc.</p>
+</blockquote>
+
+<ul>
+    <li><font size="4"><em><strong>WFData:</strong></em></font></li>
+</ul>
+
+<blockquote>
+    <p><font face="Courier New"><strong>[DPMSPlayer]<br>
+    </strong></font>The super-class of dynamic meshed player
+    classes.</p>
+    <p><font face="Courier New"><strong>[DPMSMeshInfo]<br>
+    </strong></font>Super-class of player animation info.</p>
+    <p><font face="Courier New"><strong>[DPMSSoundInfo]<br>
+    </strong></font>Super-class of player sound sets.</p>
+    <p><font face="Courier New"><strong>[DPMSInfo]<br>
+    </strong></font>Super-class of all DPMS info classes (an
+    abstract class that doesn't implement any functionality).</p>
+    <p><font face="Courier New"><strong>[DPMSPlayerWindow]<br>
+    </strong></font>This is a player setup window that supports
+    both DPMS and standard UT player classes. It replaces the
+    usual UT player setup window when logging into a game using a
+    DPMS player type class. It functions in <em>exactly</em> the
+    same way as the normal player setup window. The only thing it
+    really does is make sure that the setup window displays the
+    players current mesh and skin setup properly if the player is
+    currently a DPMS player class, otherwise it acts as normal.</p>
+    <p><font face="Courier New"><strong>[DPMSPlayerSetupClient]<br>
+    </strong></font>This is the window class that actually adds
+    the support for DPMS player classes to the player setup
+    window, the other <font size="2" face="Courier New">DPMSPlayer&lt;name&gt;</font>
+    window classes are only really used to launch this window.</p>
+</blockquote>
+
+<ul>
+    <li><font size="4"><em><strong>WFSystem:</strong></em></font></li>
+</ul>
+
+<blockquote>
+    <p><font face="Courier New"><strong>[PlayerClassInfo]<br>
+    </strong></font>This is the class to sub-class for creating
+    new player classes.</p>
+    <p><font face="Courier New"><strong>[HUDMenuInfo]<br>
+    </strong></font>The super-class of all hud menus.</p>
+    <p><font face="Courier New"><strong>[HUDTextMenu]<br>
+    </strong></font>Displays the menu as a text menu with a list
+    of options.</p>
+    <p><font face="Courier New"><strong>[InventoryInfo]<br>
+    </strong></font>Sub-class this to create a default
+    inventory/item set.</p>
+    <p><font face="Courier New"><strong>[PCIList]<br>
+    </strong></font>Contains information about the player classes
+    for each team. This class is set up by the game class before
+    the game begins.</p>
+    <p><font face="Courier New"><strong>[PCSystemPlayer]<br>
+    </strong></font>The player class system player.</p>
+    <p><font face="Courier New"><strong>[HUDInfo]<br>
+    </strong></font>The super-class of all extended hud classes.</p>
+    <p><font face="Courier New"><strong>[PCSystemAutoCannon]<br>
+    </strong></font>The super-class of player maintainable
+    automatic sentry cannons.</p>
+    <p><font face="Courier New"><strong>[PCSystemHUD]<br>
+    </strong></font>Used to implement the ExtendedHUD as well as
+    Renders and manages HUD menus. The extended HUD is a
+    sub-class of <font color="#0000A0"><em>HUDInfo</em></font>.</p>
+    <p><font face="Courier New"><strong>[GameModeInfo]<br>
+    </strong></font>Uhh... Heh... don't worry about this class
+    just yet. Its an un-implemented part of the PCSystem. See the
+    class for a description of what it was going to be used for
+    if you're interested. It's probably not relavent for WF
+    though.</p>
+    <p><font face="Courier New"><strong>[PCSystemGame]<br>
+    </strong></font>Game template for player class based games.
+    I've created a CTF template (<font color="#0000A0"><em>PCSystemCTFGame.uc</em></font>)
+    using this code which is sub-classed by <font color="#0000A0"><em>WFGame.uc</em></font>.</p>
+    <p><font face="Courier New"><strong>[PCSystemGRI]<br>
+    </strong></font>The game replication info for the PCSystem.</p>
+    <p><font face="Courier New"><strong>[PCSystemInfo]<br>
+    </strong></font>Super-class of all PCSystem info classes.</p>
+</blockquote>
+
+<ul>
+    <li><font size="4"><em><strong>WFCode:</strong></em></font></li>
+</ul>
+
+<blockquote>
+    <p><font face="Courier New"><strong>[WFGame]<br>
+    </strong></font>The WF game type. Sub-class of <font
+    color="#0000A0"><em>PCSystemCTFGame</em></font>.</p>
+    <p><font face="Courier New"><strong>[WFPlayer]<br>
+    </strong></font>The WF player class.</p>
+    <p><font face="Courier New"><strong>[WFGameGRI]<br>
+    </strong></font>The WF game replication info class (a
+    sub-class of <font color="#0000A0"><em>PCSystemGRI</em></font>).</p>
+    <p><font face="Courier New"><strong>[WFBackpack]<br>
+    </strong></font>Dropped when a player dies, and contains all
+    the ammo and used armor that was held by that player. Used
+    armor can be salvaged by Engineers for building resources.</p>
+    <p><font face="Courier New"><strong>[WFPlayerStatus]<br>
+    </strong></font>Super-class of all player status effects.</p>
+    <p><font face="Courier New"><strong>[WFMapSetupInfo]<br>
+    </strong></font>Responisble for setting up maps before the
+    game begins (eg. spawning WF flags and bases, etc).</p>
+    <p><font face="Courier New"><strong>[WFPlayerClassInfo]<br>
+    </strong></font>Super-class of the WF player classes.</p>
+</blockquote>
+
+<ul>
+    <li><font size="4"><em><strong>WFWeapons:</strong></em></font></li>
+</ul>
+
+<blockquote>
+    <p><font face="Courier New"><strong>[WFWeapon]<br>
+    </strong></font>Super-class of the WF weapon code.</p>
+</blockquote>
+
+<ul>
+    <li><font size="4"><em><strong>WFPlayerClasses:</strong></em></font></li>
+</ul>
+
+<blockquote>
+    <p><font face="Courier New"><strong>[WFPlayerClassList]<br>
+    </strong></font>Player class list for the WF player classes.</p>
+</blockquote>
+
+<h2>Scripting notes</h2>
+
+<p>If possible, try to avoid modifying the PCSystem classes
+directly. Instead, implement the changes in a sub-class. If it is
+something that <em>really</em> needs to be implemented in one of
+the PCSystem super-classes, then its ok just as long as you keep
+track of the things that are changed. The PCSystem code can <em>always</em>
+be improved with new features :o)</p>
+
+<p>Use the <em>health</em> and <em>maxhealth</em> variables when
+sub-classing PlayerClassInfo for new player classes to specify
+how much health players are allowed. The <em>health</em> var is
+how much health the player normally has when respawning or that
+can be reached by collecting normal health boxes, and <em>maxhealth</em>
+is the maximum possible health that the player class can reach by
+collecting health vials or by collecting the super-health.</p>
+
+<p>I'll be doing the main builds and integrating the code, so
+send any code with some from of brief documentation so I can
+merge it with the main WFUT code properly -- especially if
+modifications were made to an existing WFUT class :o)</p>
+
+<h2>Typical Game Flow</h2>
+
+<p>Here's a brief list of events for a typical WF game. </p>
+
+<ul>
+    <li>Map setup with WF flags, flag bases, AI markers etc.
+        (WFMapSetupInfo)</li>
+    <li>PCILists created for each team (WFPlayerClassList)</li>
+</ul>
+
+<p><font color="#0000A0"><em>[Player logs in]</em></font> </p>
+
+<ul>
+    <li>SpawnClass switched to WFPlayer.</li>
+    <li>Initial state set to 'PCSpectating'</li>
+    <li>Team set to 4 (TEAM_Spectator).</li>
+    <li>Team menu displayed (done client side using PCSpectating
+        state)</li>
+</ul>
+
+<p><font color="#0000A0"><em>[Player changes team]</em></font> </p>
+
+<ul>
+    <li>Team changed to desired team</li>
+    <li>(PCI notified of team change)</li>
+    <li>(PCIList notified of team change)</li>
+    <li>PCI set to 'None'</li>
+    <li>Class menu diplayed</li>
+</ul>
+
+<p><font color="#0000A0"><em>[Player changes class at login, or
+has died after changing class during game]</em></font> </p>
+
+<ul>
+    <li>Class changed to desired class</li>
+    <li>(old PCI notified of class change)</li>
+    <li>(PCIList notified of class change)</li>
+    <li>Player class properties initialised (mesh info, skin,
+        etc)</li>
+    <li>PCI starting inventory and properties set up (weapons,
+        player speed, etc)</li>
+    <li>Player restarted and message displayed</li>
+</ul>
+
+<p><font color="#0000A0"><em>[Player takes damage]</em></font> </p>
+
+<ul>
+    <li>(PCI notified of damage, and given oppertunity to modify
+        parameters)</li>
+</ul>
+
+<p><font color="#0000A0"><em>[Player dies and restarts]</em></font>
+</p>
+
+<ul>
+    <li>(PCI notified of player dying)</li>
+    <li>PCI starting inventory and properties set up (weapons,
+        player speed, etc)</li>
+    <li>Player restarted</li>
+</ul>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+</body>
+</html>

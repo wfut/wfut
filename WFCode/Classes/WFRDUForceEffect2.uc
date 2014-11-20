@@ -1,0 +1,1 @@
+class WFRDUForceEffect2 extends UT_RingExplosion;

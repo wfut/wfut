@@ -1,0 +1,20 @@
+
+Installation
+============
+Extract each of the zips to your UT folder using the zip name.
+Make sure that you extract the files using folder names.
+
+eg. WFSystem.zip -> UT\WFSystem
+
+Place *.int in your UT\System folder.
+
+
+To compile the code, setup your EditPackages list in this order:
+
+EditPackages=WFMedia
+EditPackages=WFData
+EditPackages=WFSystem
+EditPackages=WFCode
+EditPackages=WFWeapons
+EditPackages=WFPlayerClasses
+EditPackages=WFMenu
