@@ -1,4 +1,4 @@
-class WFMedkitMesh_MISSING extends WFMeshImports;
+class WFMedkitMesh extends WFMeshImports;
 
 /*
 FireTexture'UnrealShare.SEffect1.Smoke1'
@@ -7,10 +7,6 @@ FireTexture'UnrealShare.Belt_fx.UDamageFX'
 FireTexture'UnrealShare.Belt_fx.ShieldBelt.BlueShield'
 FireTexture'UnrealI.Effect10.fireeffect10'
 */
-
-// FIXME: Missing
-
-/*
 
 // heal effect textures
 #exec TEXTURE IMPORT NAME=ShockTexRed FILE=Textures\MedKit\Shockwave_red.PCX GROUP="Skins"
@@ -88,4 +84,3 @@ FireTexture'UnrealI.Effect10.fireeffect10'
 #exec MESHMAP SETTEXTURE MESHMAP=medthird NUM=2 TEXTURE=UT_ArtFX.BetaBump
 //#exec MESHMAP SETTEXTURE MESHMAP=medthird NUM=2 TEXTURE=UnrealShare.top3
 
-*/
