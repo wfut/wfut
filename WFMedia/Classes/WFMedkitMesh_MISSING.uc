@@ -1,4 +1,4 @@
-class WFMeditkitMesh_MISSING extends WFMeshImports;
+class WFMedkitMesh_MISSING extends WFMeshImports;
 
 /*
 FireTexture'UnrealShare.SEffect1.Smoke1'

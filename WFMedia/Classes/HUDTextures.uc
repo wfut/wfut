@@ -9,7 +9,7 @@ class HUDTextures extends WFMediaInfo;
 // health icon
 #exec TEXTURE IMPORT Name="HealthIcon" FILE=Textures\HUD\HealthIcon.pcx MIPS=OFF FLAGS=2
 // armour icon
-#exec TEXTURE IMPORT Name="ArmourIcon" FILE=Textures\HUD\ArmorIcon.pcx MIPS=OFF FLAGS=2
+#exec TEXTURE IMPORT Name="ArmourIcon" FILE=Textures\HUD\ArmourIcon.pcx MIPS=OFF FLAGS=2
 // resource icon
 #exec TEXTURE IMPORT Name="ResourceIcon" FILE=Textures\HUD\ResourceIcon.pcx MIPS=OFF FLAGS=2
 
@@ -46,7 +46,8 @@ class HUDTextures extends WFMediaInfo;
 // weapon icons
 #exec TEXTURE IMPORT Name="WeaponImpactHammer" FILE=Textures\WeaponIcons\WeaponImpactHammer.pcx MIPS=OFF FLAGS=2
 #exec TEXTURE IMPORT Name="WeaponTranslocator" FILE=Textures\WeaponIcons\WeaponTranslocator.pcx MIPS=OFF FLAGS=2
-#exec TEXTURE IMPORT Name="WeaponRocketLaucher" FILE=Textures\WeaponIcons\WeaponRocketLauncher.pcx MIPS=OFF FLAGS=2
+// FIXME: Typo 'Laucher' instead of 'Launcher' - check references.
+#exec TEXTURE IMPORT Name="WeaponRocketLaucher" FILE=Textures\WeaponIcons\WeaponRocketLaucher.pcx MIPS=OFF FLAGS=2
 #exec TEXTURE IMPORT Name="WeaponMiniFlak" FILE=Textures\WeaponIcons\WeaponMiniflak.pcx MIPS=OFF FLAGS=2
 #exec TEXTURE IMPORT Name="WeaponHyperblaster" FILE=Textures\WeaponIcons\WeaponHyperblaster.pcx MIPS=OFF FLAGS=2
 #exec TEXTURE IMPORT Name="WeaponRailGun" FILE=Textures\WeaponIcons\WeaponRailGun.pcx MIPS=OFF FLAGS=2
@@ -80,9 +81,9 @@ class HUDTextures extends WFMediaInfo;
 #exec TEXTURE IMPORT Name="GrenadeFreeze" FILE=Textures\GrenadeIcons\GrenadeFreeze.pcx MIPS=OFF FLAGS=2
 
 // flag icons
-#exec TEXTURE IMPORT Name="FlagHome" FILE=Textures\HUD\flag_home.pcx MIPS=OFF FLAGS=2
-#exec TEXTURE IMPORT Name="FlagDown" FILE=Textures\HUD\flag_down.pcx MIPS=OFF FLAGS=2
-#exec TEXTURE IMPORT Name="FlagCapt" FILE=Textures\HUD\flag_capt.pcx MIPS=OFF FLAGS=2
-#exec TEXTURE IMPORT Name="FlagReturn" FILE=Textures\HUD\flag_return.pcx MIPS=OFF FLAGS=2
+#exec TEXTURE IMPORT Name="FlagHome" FILE=Textures\HUD\FlagHome.pcx MIPS=OFF FLAGS=2
+#exec TEXTURE IMPORT Name="FlagDown" FILE=Textures\HUD\FlagDown.pcx MIPS=OFF FLAGS=2
+#exec TEXTURE IMPORT Name="FlagCapt" FILE=Textures\HUD\FlagCapt.pcx MIPS=OFF FLAGS=2
+#exec TEXTURE IMPORT Name="FlagReturn" FILE=Textures\HUD\FlagReturn.pcx MIPS=OFF FLAGS=2
 
 
