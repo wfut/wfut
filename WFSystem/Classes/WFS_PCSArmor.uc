@@ -111,12 +111,6 @@ function int ArmorAbsorbDamage(int Damage, name DamageType, vector HitLocation)
 	return (Damage - ArmorDamage);
 }
 
-// negative values will reduce armor
-function AddArmor(int Amount)
-{
-	Charge = Clamp(Charge + Amount, 0, MaxCharge );
-}
-
 defaultproperties
 {
      bDisplayableInv=True
