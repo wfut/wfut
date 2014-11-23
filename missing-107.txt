@@ -1,8 +1,0 @@
-
-Missing 107 media files
-
-* WFMedkitMesh.uc - Medkit mesh
-* WFRDUMesh.uc - RDU mesh
-* WFPipeProxMesh.uc - proximity trigger mesh
-* WFEffectModels.uc - misc effect models
-
