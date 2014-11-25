@@ -1,7 +1,8 @@
-class WFRDUMesh_MISSING extends WFMeshImports;
+class WFRDUMesh_PARTIAL extends WFMeshImports;
 
 // FIXME: Missing
 
+/*
 
 //firstpersonview
 
@@ -21,13 +22,13 @@ class WFRDUMesh_MISSING extends WFMeshImports;
 
 // Digest and compress the animation data. Must come after the sequence declarations.
 // 'VERBOSE' gives more debugging info in UCC.log
-//#exec ANIM DIGEST  ANIM=ckrdufirst1Anims VERBOSE
+#exec ANIM DIGEST  ANIM=ckrdufirst1Anims VERBOSE
 
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex0  FILE=MODELS\RDU1.tga  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex1  FILE=MODELS\RDU2.tga  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex2  FILE=MODELS\RDU3.tga  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex3  FILE=MODELS\RDU4.tga  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex4  FILE=MODELS\RDU5.tga  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex0  FILE=MODELS\RDU1.pcx  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex1  FILE=MODELS\RDU2.pcx  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex2  FILE=MODELS\RDU3.pcx  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex3  FILE=MODELS\RDU4.pcx  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex4  FILE=MODELS\RDU5.pcx  GROUP=Skins
 
 #EXEC MESHMAP SETTEXTURE MESHMAP=ckrdufirst1Mesh NUM=0 TEXTURE=ckrdufirst1Tex0
 #EXEC MESHMAP SETTEXTURE MESHMAP=ckrdufirst1Mesh NUM=1 TEXTURE=ckrdufirst1Tex1
@@ -41,6 +42,7 @@ class WFRDUMesh_MISSING extends WFMeshImports;
 // Original material [3] is [SKIN03] SkinIndex: 3 Bitmap: RDU4.bmp  Path: C:\Skins\RDU
 // Original material [4] is [SKIN04] SkinIndex: 4 Bitmap: RDU5.bmp  Path: C:\Skins\RDU
 
+*/
 
 //thirdpersonview
 
