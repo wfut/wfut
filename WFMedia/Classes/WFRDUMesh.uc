@@ -1,8 +1,7 @@
-class WFRDUMesh_PARTIAL extends WFMeshImports;
+class WFRDUMesh extends WFMeshImports;
 
 // FIXME: Missing
 
-/*
 
 //firstpersonview
 
@@ -42,7 +41,6 @@ class WFRDUMesh_PARTIAL extends WFMeshImports;
 // Original material [3] is [SKIN03] SkinIndex: 3 Bitmap: RDU4.bmp  Path: C:\Skins\RDU
 // Original material [4] is [SKIN04] SkinIndex: 4 Bitmap: RDU5.bmp  Path: C:\Skins\RDU
 
-*/
 
 //thirdpersonview
 
