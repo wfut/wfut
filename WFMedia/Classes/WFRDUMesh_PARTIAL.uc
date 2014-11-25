@@ -2,7 +2,7 @@ class WFRDUMesh_MISSING extends WFMeshImports;
 
 // FIXME: Missing
 
-/*
+
 //firstpersonview
 
 #exec MESH  MODELIMPORT MESH=ckrdufirst1Mesh MODELFILE=models\ckrdufirst1.PSK LODSTYLE=10
@@ -21,13 +21,13 @@ class WFRDUMesh_MISSING extends WFMeshImports;
 
 // Digest and compress the animation data. Must come after the sequence declarations.
 // 'VERBOSE' gives more debugging info in UCC.log
-#exec ANIM DIGEST  ANIM=ckrdufirst1Anims VERBOSE
+//#exec ANIM DIGEST  ANIM=ckrdufirst1Anims VERBOSE
 
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex0  FILE=MODELS\RDU1.pcx  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex1  FILE=MODELS\RDU2.pcx  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex2  FILE=MODELS\RDU3.pcx  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex3  FILE=MODELS\RDU4.pcx  GROUP=Skins
-#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex4  FILE=MODELS\RDU5.pcx  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex0  FILE=MODELS\RDU1.tga  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex1  FILE=MODELS\RDU2.tga  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex2  FILE=MODELS\RDU3.tga  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex3  FILE=MODELS\RDU4.tga  GROUP=Skins
+#EXEC TEXTURE IMPORT NAME=ckrdufirst1Tex4  FILE=MODELS\RDU5.tga  GROUP=Skins
 
 #EXEC MESHMAP SETTEXTURE MESHMAP=ckrdufirst1Mesh NUM=0 TEXTURE=ckrdufirst1Tex0
 #EXEC MESHMAP SETTEXTURE MESHMAP=ckrdufirst1Mesh NUM=1 TEXTURE=ckrdufirst1Tex1
@@ -41,6 +41,7 @@ class WFRDUMesh_MISSING extends WFMeshImports;
 // Original material [3] is [SKIN03] SkinIndex: 3 Bitmap: RDU4.bmp  Path: C:\Skins\RDU
 // Original material [4] is [SKIN04] SkinIndex: 4 Bitmap: RDU5.bmp  Path: C:\Skins\RDU
 
+
 //thirdpersonview
 
 #exec MESH IMPORT MESH=rduthird ANIVFILE=MODELS\rduthird_a.3d DATAFILE=MODELS\rduthird_d.3d X=0 Y=0 Z=0
@@ -49,11 +50,11 @@ class WFRDUMesh_MISSING extends WFMeshImports;
 #exec MESH SEQUENCE MESH=rduthird SEQ=All      STARTFRAME=0 NUMFRAMES=1
 #exec MESH SEQUENCE MESH=rduthird SEQ=RDUTHIRD STARTFRAME=0 NUMFRAMES=1
 
-#exec TEXTURE IMPORT NAME=Jrduthird1 FILE=MODELS\rduthird1.PCX GROUP=Skins FLAGS=2 // Skin
+#exec TEXTURE IMPORT NAME=Jrduthird1 FILE=MODELS\rduthird1.pcx GROUP=Skins FLAGS=2 // Skin
 
 #exec MESHMAP NEW   MESHMAP=rduthird MESH=rduthird
 #exec MESHMAP SCALE MESHMAP=rduthird X=0.1 Y=0.1 Z=0.2
 
-#exec MESHMAP SETTEXTURE MESHMAP=rduthird NUM=1 TEXTURE=Jrduthird1
+#exec MESHMAP SETTEXTURE MESHMAP=rduthird NUM=0 TEXTURE=Jrduthird1
 
-*/
+
