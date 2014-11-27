@@ -17,4 +17,5 @@ defaultproperties
 	PrimingTime=0.500000
 	NumCopies=1
 	bSingleGrenade=True
+	StatusIcon=Texture'WFMedia.GrenadeFrag'
 }

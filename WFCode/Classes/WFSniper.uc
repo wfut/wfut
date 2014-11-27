@@ -8,7 +8,7 @@ defaultproperties
 	ClassName="Sniper"
 	ClassNamePlural="Snipers"
 	Health=100
-	Armor=25
+	Armor=50
 	DefaultInventory=class'WFSniperInv'
 	MeshInfo=class'WFD_TMale2MeshInfo'
 	AltMeshInfo=class'WFD_TMale2BotMeshInfo'

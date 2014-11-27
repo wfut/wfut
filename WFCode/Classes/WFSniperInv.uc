@@ -11,7 +11,7 @@ static function ModifyWeapon(weapon NewWeapon)
 	//if ((newWeapon.class == class'WFAutoRifle') && (newWeapon.AmmoType != none))
 	//	newWeapon.AmmoType.AddAmmo(25);
 
-	if (NewWeapon.class == class'WFSniperRifle')
+	if (NewWeapon.class == class'WFSniperRifleCSHP')
 		NewWeapon.AmmoType.AddAmmo(10);
 }
 
@@ -25,6 +25,6 @@ defaultproperties
 {
 	Weapons(0)=class'WFEnforcer'
 	//Weapons(1)=class'WFAutoRifle'
-	Weapons(1)=class'WFSniperRifle'
+    Weapons(1)=Class'WFCode.WFSniperRifleCSHP'
 	Pickups(0)=class'WFGrenFrag'
 }

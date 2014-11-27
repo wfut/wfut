@@ -1,6 +1,6 @@
 class WFFlameThrowerFlameGen extends Projectile;
 
-var class<projectile> FlameClass;
+var class<projectile> FlameClass, AltFlameClass;
 var bool bCenter, bRight;
 var float AimError, NewError;
 var rotator AimRotation;
@@ -17,23 +17,49 @@ replication
 		AimError, NewError, AimRotation;
 }
 
+
 auto simulated state GenerateFlames
 {
+	function bool IsDedicatedServer()
+	{
+		return (Level.NetMode == NM_DedicatedServer);
+	}
 Begin:
-	UpdateLocation();
-	SpawnFlameProj();
-	Sleep(FlameRate);
-	goto 'Begin';
+	if (Level.bHighDetailMode)
+	{
+		UpdateLocation(FlameRate/3.0);
+		SpawnFlameProj();
+		Sleep(FlameRate/3.0);
+		UpdateLocation(FlameRate/3.0);
+		if (!Level.bDropDetail && !IsDedicatedServer())
+			SpawnFlameProj(true);
+		Sleep(FlameRate/3.0);
+		UpdateLocation(FlameRate/3.0);
+		if (!Level.bDropDetail && !IsDedicatedServer())
+			SpawnFlameProj(true);
+		Sleep(FlameRate/3.0);
+	}
+	else
+	{
+		UpdateLocation(FlameRate/2.0);
+		SpawnFlameProj();
+		Sleep(FlameRate/2.0);
+		UpdateLocation(FlameRate/2.0);
+		if (!Level.bDropDetail && !IsDedicatedServer())
+			SpawnFlameProj(true);
+		Sleep(FlameRate/2.0);
+	}
+	Goto('Begin');
 }
 
-simulated function UpdateLocation()
+simulated function UpdateLocation(float DeltaTime)
 {
 	local vector X,Y,Z, AimSpot, DrawOffset, AimStart;
 	local int YawErr;
 	local float dAdjust;
 	local Bot MyBot;
-	local float DeltaTime;
-	DeltaTime = FlameRate; // the delay between flames
+	//local float DeltaTime;
+	//DeltaTime = FlameRate; // the delay between flames
 
 	if (Instigator != None)
 	{
@@ -130,24 +156,32 @@ simulated function UpdateLocation()
 				FireOffset.Y = -1 * Default.FireOffset.Y;
 		}
 		DrawOffset = Owner.Location + DrawOffset + FireOffset.X * X + FireOffset.Y * Y + FireOffset.Z * Z;
-		SetLocation(DrawOffset);
+		if (Location != DrawOffset)
+			SetLocation(DrawOffset);
 	}
 }
 
-simulated function SpawnFlameProj()
+simulated function SpawnFlameProj(optional bool bAltFlame)
 {
 	local effects e;
 	local projectile p;
+	local vector X, Y, Z, vel;
+
 	if (Instigator != None)
 	{
 		if (Role == ROLE_Authority)
 			Instigator.MakeNoise(Instigator.SoundDampening);
+		GetAxes(Instigator.ViewRotation, X, Y, Z);
+		vel = X * VSize(Instigator.Velocity) * (normal(Instigator.Velocity) dot X);
+		if (VSize(vel) > Instigator.GroundSpeed)
+			vel *= Instigator.GroundSpeed/VSize(vel);
 		//AdjustedAim = Instigator.AdjustAim(FlameSpeed, Location, AimError, True, True);
 		if (!Region.Zone.bWaterZone)
 		{
-			p = Spawn(FlameClass,,, Location,Instigator.ViewRotation);
+			if (bAltFlame) p = Spawn(AltFlameClass,,, Location,Instigator.ViewRotation);
+			else p = Spawn(FlameClass,,, Location,Instigator.ViewRotation);
 			if (p != None)
-				p.Velocity = p.Speed*vector(Instigator.ViewRotation) + Instigator.Velocity;
+				p.Velocity = p.Speed*vector(Instigator.ViewRotation) + vel;
 		}
 		else
 		{
@@ -168,6 +202,7 @@ defaultproperties
 	Style=STY_Translucent
 	DrawScale=0.15
 	FlameClass=class'WFFlameProj'
+	AltFlameClass=Class'WFCode.WFFlameProjAlt'
 	bCollideActors=False
 	bCollideWorld=False
 	//AmbientSound=Sound'UnrealShare.BRocket'

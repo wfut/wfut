@@ -325,8 +325,8 @@ defaultproperties
      hitdamage=25.000000
      AltHitDamage=100.000000
      AltAmmoUsed=10
-     RecoilKick=750.000000
-     RecoilLift=250.000000
+     RecoilKick=250.000000
+     RecoilLift=150.000000
      WeaponDescription="Classification: Energy Rifle"
      InstFlash=-0.400000
      InstFog=(Z=800.000000)
@@ -356,7 +356,7 @@ defaultproperties
      PickupViewMesh=LodMesh'hyperpick'
      ThirdPersonMesh=LodMesh'hyperthird'
      ThirdpersonScale=.24
-     StatusIcon=Texture'Botpack.Icons.UseASMD'
+     StatusIcon=Texture'WFMedia.WeaponHyperblaster'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.UseASMD'
      Mesh=LodMesh'hyperpick'
@@ -364,5 +364,4 @@ defaultproperties
      CollisionRadius=34.000000
      CollisionHeight=8.000000
      Mass=50.000000
-     bAltFireDropsFlag=true
 }

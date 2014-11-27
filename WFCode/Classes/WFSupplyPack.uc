@@ -177,6 +177,7 @@ defaultproperties
 	AmmoTypes(8)=class'WarheadAmmo'
 	AmmoTypes(9)=class'WFASAmmo'
 	AmmoTypes(10)=class'WFChainCannonAmmo'
+    AmmoTypes(11)=Class'WFFlameThrowerAmmo'
 	AmmoAmounts(0)=50
 	AmmoAmounts(1)=35
 	AmmoAmounts(2)=25
@@ -188,6 +189,7 @@ defaultproperties
 	AmmoAmounts(8)=1
 	AmmoAmounts(9)=5
 	AmmoAmounts(10)=50
+    AmmoAmounts(11)=25.000000
 	ResourceAmount=50
 	ArmorAmount=100
 	DefaultAmmoAmount=20

@@ -15,5 +15,6 @@ defaultproperties
 	CollisionRadius=18.000000
 	CollisionHeight=8.000000
 	PrimingTime=0.500000
+	StatusIcon=Texture'WFMedia.GrenadeFlame'
 	NumCopies=1
 }

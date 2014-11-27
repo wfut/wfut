@@ -50,6 +50,7 @@ function Fire( float Value )
 		bPointing=True;
 		bCanClientFire = true;
 		ClientFire(Value);
+		NotifyFired();
 		if ( bRapidFire || (FiringSpeed > 0) )
 			Pawn(Owner).PlayRecoil(FiringSpeed);
 		FireRocket(true);
@@ -74,6 +75,7 @@ function AltFire( float Value )
 		bPointing=True;
 		bCanClientFire = true;
 		ClientAltFire(Value);
+		NotifyFired();
 		if ( bRapidFire || (FiringSpeed > 0) )
 			Pawn(Owner).PlayRecoil(FiringSpeed);
 		FireRocket();
@@ -368,7 +370,7 @@ defaultproperties
      PickupViewMesh=LodMesh'Botpack.Eight2Pick'
      ThirdPersonMesh=LodMesh'WFMedia.rlthird'
      ThirdPersonScale=1
-     StatusIcon=Texture'Botpack.Icons.Use8ball'
+     StatusIcon=Texture'WFMedia.WeaponRocketLaucher'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.Use8ball'
      Mesh=LodMesh'Botpack.Eight2Pick'

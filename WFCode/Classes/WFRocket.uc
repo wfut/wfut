@@ -1,5 +1,7 @@
 class WFRocket extends RocketMk2;
 
+var() float BlastRadius;
+
 simulated function PostBeginPlay()
 {
 	Trail = Spawn(class'WFRocketTrail',self);
@@ -20,6 +22,15 @@ simulated function PostBeginPlay()
 	SetTimer(SmokeRate, true);
 }
 
+auto state Flying
+{
+	function BlowUp(vector HitLocation)
+	{
+		HurtRadius(Damage,BlastRadius, MyDamageType, MomentumTransfer, HitLocation );
+		MakeNoise(1.0);
+	}
+}
+
 defaultproperties
 {
 	//speed=900.000000
@@ -29,4 +40,6 @@ defaultproperties
 	Damage=80
 	Mesh=LodMesh'WF_Rocket'
 	DrawScale=1
+    BlastRadius=165.000000
+    Damage=90.000000
 }

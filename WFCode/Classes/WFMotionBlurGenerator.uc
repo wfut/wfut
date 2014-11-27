@@ -27,7 +27,8 @@ simulated function Tick(float DeltaTime)
 {
 	local WFMotionBlurEffect Blur;
 
-	if (bHidden) return;
+	if (!ShouldCreateEffect())
+		return;
 
 	if (Level.NetMode == NM_DedicatedServer)
 	{
@@ -44,6 +45,11 @@ simulated function Tick(float DeltaTime)
 		Blur = spawn(MotionBlurEffectClass, Owner,, Owner.Location, Owner.Rotation);
 		Blur.InitFor(Owner);
 	}
+}
+
+simulated function bool ShouldCreateEffect()
+{
+	return !bHidden; // override to define extra rules for creating the effect blur
 }
 
 simulated function DLog(coerce string S, float Delay)

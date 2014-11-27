@@ -37,6 +37,8 @@ var const int FRS_TouchReturn; // players can touch their flag to return it
 var const int FRS_CarryReturn; // players must carry their own flag back to base to return it
 
 var() config float FlagReturnTime; // time before flag auto-returns
+var() config float DefendRadius; //radius in which person defends flag
+var() config float FlagRunnerDefendRadius; //radius in which person defends ithe flag runner
 
 // TODO: add these to the GRI
 var() config bool bAutoTeamTimer; // players must choose a team within AutoTeamTime seconds
@@ -55,8 +57,83 @@ var() class<WFS_WindowDisplayInfo> TeamPasswordDialogClass[4];
 var config bool bRefStartGame; // referee must start the game when in tournament mode
 var WFRefereeInfo RefInfo;
 
+var() config int MaxLoginAttempts;
+var() config float SpawnProtectionTime;
+
 // score related
 var int KilledFlagCarrierBonus;
+
+// MiscScoreArray index usage
+var() byte INDEX_FlagCaps;
+var() byte INDEX_FlagDefends;
+var() byte INDEX_FlagCarrierKills;
+var() byte INDEX_FlagCarrierDefends;
+var() byte INDEX_FlagReturns;
+var() byte INDEX_Frags;
+
+function PostBeginPlay()
+{
+	local int i;
+
+	super.PostBeginPlay();
+
+	for (i=0;i<4;i++)
+	{
+		// remove the old UT team info
+		Teams[i].Size = 0;
+		Teams[i].Score = 0;
+		Teams[i].TeamName = "";
+		Teams[i].TeamIndex = -1;
+		Teams[i].Destroy();
+		Teams[i] = None;
+
+		// create the WFTeamInfo classes
+		Teams[i] = Spawn(class'WFTeamInfo');
+		Teams[i].Size = 0;
+		Teams[i].Score = 0;
+		Teams[i].TeamName = TeamNames[i];
+		Teams[i].TeamIndex = i;
+		TournamentGameReplicationInfo(GameReplicationInfo).Teams[i] = Teams[i];
+	}
+}
+
+function AdminLogin( PlayerPawn P, string Password )
+{
+	local WFPlayer WFP;
+	local float logintime;
+
+	WFP = WFPlayer(P);
+	if ((WFP == None) || WFP.bAdminLoginDisabled || WFP.bAdmin)
+		return;
+
+	if (WFP.NumAdminLogins == 0)
+	{
+		WFP.NumAdminLogins++;
+		WFP.FirstAdminLoginTime = Level.TimeSeconds;
+	}
+	else
+		WFP.NumAdminLogins++;
+
+	super.AdminLogin(P, Password);
+
+	if (P.bAdmin)
+	{
+		WFP.NumAdminLogins = 0;
+		WFP.FirstAdminLoginTime = 0.0;
+	}
+	else
+	{
+		// check to see if player is flooding to try to gain the password
+		logintime = Level.TimeSeconds - WFP.FirstAdminLoginTime;
+		if (WFP.NumAdminLogins > MaxLoginAttempts)
+		{
+			WFP.bAdminLoginDisabled = true;
+			WFP.NumAdminLogins = 0;
+			WFP.FirstAdminLoginTime = 0.0;
+			Log("INFO: ADMINLOGIN: "$WFP.PlayerReplicationInfo.PlayerName$" (IP: "$WFP.GetPlayerNetworkAddress()$") failed to log in within "$MaxLoginAttempts$" attempts, ADMIN login disabled for this player");
+		}
+	}
+}
 
 function PreBeginPlay()
 {
@@ -64,6 +141,18 @@ function PreBeginPlay()
 	Log("=== Weapons Factory Version: "$WFGameVersion$" ===");
 	if (RefInfo == None)
 		RefInfo = spawn(class'WFRefereeInfo');
+}
+
+event InitGame( string Options, out string Error )
+{
+	Super.InitGame(Options, Error);
+	MaxCommanders = 0;
+}
+
+function InitGameReplicationInfo()
+{
+	super.InitGameReplicationInfo();
+	WFGameGRI(GameReplicationInfo).FlagReturnStyle = FlagReturnStyle;
 }
 
 function bool CheckForMapData()
@@ -92,9 +181,74 @@ function InitClassLists()
 
 event PostLogin( playerpawn NewPlayer )
 {
+	local string TimeString;
+
 	Super.PostLogin(NewPlayer);
+
+	GetTimeStamp(TimeString);
+
+	Log("=== PLAYER LOGED IN ===");
+	Log("Login Name: "$NewPlayer.PlayerReplicationInfo.PlayerName);
+	Log("Time: "$TimeString);
+	Log("IP Address: "$NewPlayer.GetPlayerNetworkAddress());
+	Log("=======================");
+
 	WFPlayer(NewPlayer).bLoginComplete = true;
 	WFPlayer(NewPlayer).RefInfo = RefInfo;
+}
+
+function ChangeName(Pawn Other, string S, bool bNameChange)
+{
+	local string oldName, TimeString;
+
+	oldname = other.playerReplicationInfo.PlayerName;
+	super.ChangeName(Other, S, bNameChange);
+
+	if (Other.IsA('WFPlayer') && WFPlayer(Other).bLoginComplete
+		&& (oldname != other.playerReplicationInfo.PlayerName))
+	{
+		GetTimeStamp(TimeString);
+		Log("=== PLAYER CHANGED NAME ===");
+		Log("Old Name: "$oldname);
+		Log("New Name: "$other.PlayerReplicationInfo.PlayerName);
+		Log("Time: "$TimeString);
+		Log("IP Address: "$playerpawn(other).GetPlayerNetworkAddress());
+		Log("=======================");
+	}
+}
+
+function string GetGameTime()
+{
+	local string TimeStamp;
+
+	TimeStamp = string(Level.Year);
+
+	if (Level.Month < 10)
+		TimeStamp = TimeStamp$"/0"$Level.Month;
+	else
+		TimeStamp = TimeStamp$"/"$Level.Month;
+
+	if (Level.Day < 10)
+		TimeStamp = TimeStamp$"/0"$Level.Day;
+	else
+		TimeStamp = TimeStamp$"/"$Level.Day;
+
+	if (Level.Hour < 10)
+		TimeStamp = TimeStamp$" 0"$Level.Hour;
+	else
+		TimeStamp = TimeStamp$" "$Level.Hour;
+
+	if (Level.Minute < 10)
+		TimeStamp = TimeStamp$":0"$Level.Minute;
+	else
+		TimeStamp = TimeStamp$":"$Level.Minute;
+
+	if (Level.Second < 10)
+		TimeStamp = TimeStamp$":0"$Level.Second;
+	else
+		TimeStamp = TimeStamp$":"$Level.Second;
+
+	return TimeStamp;
 }
 
 function int ReduceDamage(int Damage, name DamageType, pawn injured, pawn instigatedBy)
@@ -153,6 +307,12 @@ function bool CanChangeTeam(pawn Other, int NewTeam)
 	if ((WFP == None) || !WFP.bLoginComplete)
 		return true;
 
+	if (WFP.bLoginComplete && (WFP.PlayerReplicationInfo.Team == NewTeam))
+	{
+		WFP.ClientMessage("You are already on that team.", 'CriticalEvent', true);
+		return false;
+	}
+
 	if (NewTeam == 255)
 	{
 		for (i=0; i<MaxTeams; i++)
@@ -191,6 +351,26 @@ function Killed( pawn Killer, pawn Other, name damageType )
 {
 	local WFBackPack pack;
 	local float speed;
+	local WF_PRI WFPRI;
+	local WF_BotPRI WFBotPRI;
+	local WFCustomHUD MyHUD;
+  local int i, flagteam;
+	local WFFlag Flag;
+	local TournamentGameReplicationInfo OwnerGame;
+	local bool bPointGiven;
+	local pawn aPawn;
+	local PlayerReplicationInfo HolderPRI;
+  local vector FlagLocation;
+	local bool bFlagLOS;
+
+	// send some events
+	if (Other.PlayerReplicationInfo.HasFlag != None)
+	{
+		flagteam = CTFFlag(Other.PlayerReplicationInfo.HasFlag).Team;
+		if (Other.PlayerReplicationInfo.Team != flagteam)
+			class'WFPlayerClassInfo'.static.SendEvent(Other, "flag_dropped");
+		else class'WFPlayerClassInfo'.static.SendEvent(Other, "flag_dropped_own");
+	}
 
 	if (DamageType == 'RefLogin')
 	{
@@ -198,6 +378,8 @@ function Killed( pawn Killer, pawn Other, name damageType )
 			Other.PlayerReplicationInfo.HasFlag.Drop(0.5 * Other.Velocity);
 		return;
 	}
+
+	bPointGiven = false;
 
 	if ((Other != None) && Other.bIsPlayer)
 	{
@@ -215,17 +397,95 @@ function Killed( pawn Killer, pawn Other, name damageType )
 
 	// lazy hack to get around the +4 bonus for shooting down a flag carrier
 	if ( Other.bIsPlayer && (Other.PlayerReplicationInfo.HasFlag != None) )
-		if ( (Killer != None) && Killer.bIsPlayer && Other.bIsPlayer && (Killer.PlayerReplicationInfo.Team != Other.PlayerReplicationInfo.Team) )
+	{
+		if ( ( Killer != None ) &&
+           Killer.bIsPlayer &&
+           Other.bIsPlayer &&
+           ( Killer.PlayerReplicationInfo.Team !=
+             Other.PlayerReplicationInfo.Team ) )
 		{
 			killer.PlayerReplicationInfo.Score -= 4;
 			killer.PlayerReplicationInfo.Score += KilledFlagCarrierBonus;
+
+      //points for killing the flag runner
+
+      class'WFTools'.static.AdjustMiscScore(killer.PlayerReplicationInfo,
+                                            INDEX_FlagCarrierKills, 1);
+      WFTeamInfo( TournamentGameReplicationInfo(GameReplicationInfo) .Teams[  killer.PlayerReplicationInfo.Team ] ).MiscScoreArray[ INDEX_FlagCarrierKills ]++;
+			Killer.ReceiveLocalizedMessage( class'WFFlagRunnerKillMessage', 0, Other.PlayerReplicationInfo );
+		  bPointGiven = true;
 		}
+	}
+
+  // given points for flag runner defends
+	if (Killer != None)
+	{
+		for ( i=0; i<4; i++ )
+		{
+			Flag = WFFlag(CTFReplicationInfo(GameReplicationInfo).FlagList[i]);
+			if( Flag == None )
+			{
+			  continue;
+			}
+
+			//FlagLocation = Flag.Location;
+			FlagLocation = Flag.Position().Location;
+
+			bFlagLOS = ((Killer != None) && Killer.FastTrace(FlagLocation))
+						|| ((Other != None) && Other.FastTrace(FlagLocation));
+
+			if (!bFlagLOS)
+				continue;
+
+			if( !bPointGiven && ( Flag.Holder != None ) )
+			{
+					HolderPRI = Flag.Holder.PlayerReplicationInfo;
+				if ( ( HolderPRI.Team == Killer.PlayerReplicationInfo.Team ) &&
+				   ( Killer.PlayerReplicationInfo.Team != Other.PlayerReplicationInfo.Team ) &&
+						 ( Flag.bHeld ) &&
+							 ( Flag.Holder != Killer ) &&
+				   ( VSize( FlagLocation - Other.Location ) < DefendRadius ) )
+				{
+          class'WFTools'.static.AdjustMiscScore(killer.PlayerReplicationInfo,
+                                                INDEX_FlagCarrierDefends, 1);
+          WFTeamInfo( TournamentGameReplicationInfo(GameReplicationInfo) .Teams[ killer.PlayerReplicationInfo.Team ] ).MiscScoreArray[ INDEX_FlagCarrierDefends ]++;
+
+					bPointGiven = true;
+					Killer.ReceiveLocalizedMessage( class'WFFlagRunnerDefendMessage', 0, killer.PlayerReplicationInfo );
+					Flag.Holder.ReceiveLocalizedMessage( class'WFDefendedMessage', 0, killer.PlayerReplicationInfo, HolderPRI );
+					break;
+				}
+			}
+
+			if( !bPointGiven )
+			{
+				if ( ( Flag.Team == Killer.PlayerReplicationInfo.Team ) &&
+				   ( Other.PlayerReplicationInfo.Team != Killer.PlayerReplicationInfo.Team ) &&
+						 ( !Flag.bHeld ) &&
+							 ( !Flag.bReturning ) &&
+				   ( VSize( FlagLocation - Other.Location ) < DefendRadius ) )
+				{
+          class'WFTools'.static.AdjustMiscScore(killer.PlayerReplicationInfo, INDEX_FlagDefends, 1);
+          WFTeamInfo( TournamentGameReplicationInfo(GameReplicationInfo) .Teams[ killer.PlayerReplicationInfo.Team ] ).MiscScoreArray[ INDEX_FlagDefends ]++;
+			    bPointGiven = true;
+			 	  Killer.ReceiveLocalizedMessage( class'WFFlagDefendMessage', 0, killer.PlayerReplicationInfo );
+					break;
+				}
+			}
+		}
+	}
+
+  class'WFTools'.static.AdjustMiscScore(killer.PlayerReplicationInfo,
+                                            INDEX_Frags, 1);
+  WFTeamInfo( TournamentGameReplicationInfo(GameReplicationInfo) .Teams[ killer.PlayerReplicationInfo.Team ] ).MiscScoreArray[ INDEX_Frags ]++;
+
 
 	super.Killed(Killer, Other, damageType);
 }
 
 function ScoreKill(pawn Killer, pawn Other)
 {
+
 	if ((Killer != None) && (Other != None) && Killer.bIsPlayer && Other.IsA('WFAutoCannon'))
 	{
 		if (!IsOnTeam(Other, Killer.PlayerReplicationInfo.Team))
@@ -304,8 +564,28 @@ function CheckTeamSizes()
 
 function bool RestartPlayer( pawn aPlayer )
 {
+	local bool bResult;
+	local WFSpawnProtector SP;
 	EnableFlagTouch(aPlayer);
-	return super.RestartPlayer(aPlayer);
+
+	// hack to prevent CSHP from interfering with the initial player states
+	if ( (aPlayer.Physics == PHYS_Walking) && (aPlayer.IsInState('PCSpectating') || aPlayer.IsInState('RefereeMode')) )
+	{
+		aPlayer.SetPhysics(PHYS_None);
+		return false;
+	}
+
+	bResult = super.RestartPlayer(aPlayer);
+
+	if ((SpawnProtectionTime > 0.0) && (aPlayer.PlayerReplicationInfo.Team < MaxTeams)
+		&& !aPlayer.IsInState('PCSpectating'))
+	{
+		SP = spawn(class'WFSpawnProtector', aPlayer,, aPlayer.Location);
+		if (SP != None)
+			SP.GiveTo(aPlayer);
+	}
+
+	return bResult;
 }
 
 function EnableFlagTouch(pawn Other)
@@ -1082,6 +1362,24 @@ function bool FindPathToMarker(Bot aBot, WFMarker aMarker)
 	return (aBot.bNoClearSpecial || (aBot.MoveTarget != None));
 }
 
+function ScoreFlag(Pawn Scorer, CTFFlag theFlag)
+{
+  local WF_PRI WFPRI;
+  local WF_BotPRI WFBotPRI;
+  local int index;
+
+  index = INDEX_FlagCaps;
+  if( Scorer.PlayerReplicationInfo.Team == theFlag.Team )
+  {
+    index = INDEX_FlagReturns;
+  }
+  class'WFTools'.static.AdjustMiscScore(Scorer.PlayerReplicationInfo,
+                                        index, 1);
+  WFTeamInfo( TournamentGameReplicationInfo(GameReplicationInfo) .Teams[ Scorer.PlayerReplicationInfo.Team ] ).MiscScoreArray[ index ]++;
+
+  super.ScoreFlag( Scorer, theFlag );
+}
+
 defaultproperties
 {
 	BeaconName="WF"
@@ -1094,16 +1392,16 @@ defaultproperties
 	ClassDefinitions(3)="WFCode.WFPlayerClassList"
 	RulesMenuType="WFCode.WFRSClient"
 	SettingsMenuType="WFCode.WFSSClient"
-	DefaultExtendedHUDClass=class'WFHUDInfo'
+	DefaultExtendedHUDClass=Class'WFCustomHUDInfo'
 	bUseTranslocator=True
-	HUDType=class'WFHUD'
+	HUDType=Class'WFCustomHUD'
 	FlagReturnTime=40.000000
 	bVoiceMetaClassCheck=True
 	DefaultMapInfo=class'WFGameMapSetupInfo'
 	PCBotClass=class'WFBot'
 	MutatorClass=class'WFMutator'
 	DeathMessageClass=class'WFDeathMessagePlus'
-	ScoreBoardType=Class'WFScoreboard'
+	ScoreBoardType=Class'WFCustomScoreboard'
 	TeamPasswordDialogClass(0)=class'WFTeamPasswordDialogWDI_Red'
 	TeamPasswordDialogClass(1)=class'WFTeamPasswordDialogWDI_Blue'
 	TeamPasswordDialogClass(2)=class'WFTeamPasswordDialogWDI_Green'
@@ -1112,11 +1410,19 @@ defaultproperties
 	DefaultTeamClassList(1)=class'WFPlayerClassList'
 	DefaultTeamClassList(2)=class'WFPlayerClassList'
 	DefaultTeamClassList(3)=class'WFPlayerClassList'
-	WFGameVersion="106.1a"
+	WFGameVersion="107b"
 	FlagReturnStyle=0
 	FRS_DelayReturn=0
 	FRS_TouchReturn=1
 	FRS_CarryReturn=2
 	MapListType=class'WFGameMapList'
+	DefendRadius=2084.000000
+	FlagRunnerDefendRadius=2048.000000
+	SpawnProtectionTime=8.000000
+	INDEX_FlagDefends=1
+	INDEX_FlagCarrierKills=2
+	INDEX_FlagCarrierDefends=3
+	INDEX_FlagReturns=4
+	INDEX_Frags=7
 	KilledFlagCarrierBonus=1
 }

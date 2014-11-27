@@ -232,10 +232,7 @@ function pawn FindTarget()
 
 	foreach VisibleCollidingActors(class'pawn', p, Range)
 	{
-		if ( p.bIsPlayer && (p.Health > 0) && FastTrace(p.Location, Location)
-			&& (p.PlayerReplicationInfo.Team != Instigator.PlayerReplicationInfo.Team)
-			&& (!class'WFDisguise'.static.IsDisguised(P.PlayerReplicationInfo)
-				|| (GetDisguiseTeam(p) != Instigator.PlayerReplicationInfo.Team)) )
+		if ( ValidTarget(p) )
 		{
 			dist = VSize(p.Location - Location);
 			if (dist < bestdist)
@@ -247,6 +244,17 @@ function pawn FindTarget()
 	}
 
 	return best;
+}
+
+function bool ValidTarget(pawn Other)
+{
+	if ( (Other != None) && Other.bIsPlayer && (Other.Health > 0) && FastTrace(Other.Location, Location)
+		&& (Other.PlayerReplicationInfo.Team != Instigator.PlayerReplicationInfo.Team)
+		&& (class'WFCloaker'.static.IsHalfCloaked(Other) || (!class'WFDisguise'.static.IsDisguised(Other.PlayerReplicationInfo))
+			&& !class'WFCloaker'.static.IsCloaked(Other)) )
+		return true;
+
+	return false;
 }
 
 function byte GetDisguiseTeam(pawn Other)
@@ -274,11 +282,7 @@ function ShootAt(actor Other)
 	ActualDir = Normal(Other.Location - Location);
 	Dir = vector(GetShootRot());
 
-	if ( (VSize(Other.Location - Location) > Range)
-		|| (Other.bIsPawn && ( (PawnOther.Health <= 0))
-			|| (class'WFDisguise'.static.IsDisguised(PawnOther.PlayerReplicationInfo)
-				&& (GetDisguiseTeam(PawnOther) == Instigator.PlayerReplicationInfo.Team)) )
-		|| !FastTrace(Other.Location, Location))
+	if ( !ValidTarget(pawn(Other)) || (VSize(Other.Location - Location) > Range) )
 	{
 		Target = FindTarget();
 		if (Target == None)

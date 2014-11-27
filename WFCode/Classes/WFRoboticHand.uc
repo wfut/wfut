@@ -9,6 +9,9 @@ var float MaxScale;
 var float ScaleRate;
 var float RecoilSpeed;
 
+var int BaseAmount;
+var int RandomAmount;
+
 function float RateSelf( out int bUseAltMode )
 {
 	local float EnemyDist;
@@ -91,6 +94,7 @@ function Fire( float Value )
 	if (!WeaponActive())
 		return;
 
+	NotifyFired();
 	bPointing=True;
 	bCanClientFire = true;
 	ClientFire(Value);
@@ -103,6 +107,7 @@ function AltFire( float Value )
 	if (!WeaponActive())
 		return;
 
+	NotifyFired();
 	bPointing=True;
 	bCanClientFire = true;
 	Pawn(Owner).PlayRecoil(FiringSpeed);
@@ -352,7 +357,7 @@ function GiveConcussionTo(pawn Other)
 	local WFPlayerStatus s;
 
 	PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
-	if ( ((PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusConcussed'))
+	if ( (!class'WFPlayerClassInfo'.static.PawnIsImmuneTo(Other, class'WFStatusConcussed'))
 		&& (Other.PlayerReplicationInfo.Team != pawn(Owner).PlayerReplicationInfo.Team))
 	{
 		s = spawn(class'WFStatusConcussed',,, Other.Location);
@@ -424,14 +429,12 @@ function ProcessAltTraceHit(Actor Other, Vector HitLocation, Vector HitNormal, V
 
 function RepairArmor(inventory Item)
 {
+	local int amount;
+	amount = (BaseAmount + Rand(RandomAmount));
 	if (Item.IsA('WFS_PCSArmor'))
-	{
-		Item.Charge = Min(Item.Charge + (10 + Rand(10)), WFS_PCSArmor(Item).MaxCharge);
-		if (Item.IsA('WFArmor'))
-			WFArmor(Item).UpdateCharge();
-	}
+		WFS_PCSArmor(Item).AddArmor(amount);
 	else
-		Item.Charge = Min(Item.Charge + (10 + Rand(10)), Item.default.Charge);
+		Item.Charge = Min(Item.Charge + amount, Item.default.Charge);
 }
 
 function bool CanRepairArmor(inventory Item)
@@ -484,7 +487,7 @@ defaultproperties
 	//ThirdPersonMesh=LodMesh'Botpack.ImpactHandm'
 	ThirdPersonMesh=Mesh'TazerProja'
 	ThirdPersonScale=0.0
-	StatusIcon=Texture'Botpack.Icons.UseHammer'
+    StatusIcon=Texture'WFMedia.WeaponRobotHand'
 	PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
 	Icon=Texture'Botpack.Icons.UseHammer'
 	Mesh=LodMesh'Botpack.ImpPick'
@@ -498,4 +501,6 @@ defaultproperties
 	ScaleRate=0.75
 	Mass=15
 	bRapidFire=False
+    BaseAmount=10
+    RandomAmount=10
 }

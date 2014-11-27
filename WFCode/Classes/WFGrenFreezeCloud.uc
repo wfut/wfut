@@ -20,6 +20,7 @@ function FreezePlayer(pawn Other, vector HitLocation)
 	local bool bGiveStatus, bSameTeam;
 	local WFPlayerStatus s;
 	local class<WFPlayerClassInfo> PCI;
+	local WFPlayer WFP;
 
 	if ((Other != Instigator) && Other.bIsPlayer)
 	{
@@ -27,8 +28,11 @@ function FreezePlayer(pawn Other, vector HitLocation)
 		{
 			if ((Other.Health > 0) && ((Instigator == None) || (Other.PlayerReplicationInfo.Team != Instigator.PlayerReplicationInfo.Team)))
 			{
-				PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
-				bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusFrozen');
+				//WFP = WFPlayer(Other);
+				//PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
+				//bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusFrozen');
+				bGiveStatus = !class'WFPlayerClassInfo'.static.PawnIsImmuneTo(Other, class'WFStatusFrozen');
+
 				if (bGiveStatus)
 				{
 					s = spawn(class'WFStatusFrozen',,, Other.Location);

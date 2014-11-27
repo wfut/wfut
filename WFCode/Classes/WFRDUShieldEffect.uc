@@ -8,11 +8,13 @@ function Touch(actor Other)
 
 simulated function Tick(float DeltaTime)
 {
-	local vector X, Y, Z;
+	local vector X, Y, Z, NewLoc;
 	if (Owner != None)
 	{
 		GetAxes(Owner.Rotation, X, Y, Z);
-		SetLocation(Owner.Location + X * ForwardOffset);
+		NewLoc = Owner.Location + X * ForwardOffset;
+		if (Location != NewLoc)
+			SetLocation(NewLoc);
 		SetRotation(Owner.Rotation);
 	}
 }

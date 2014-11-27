@@ -59,10 +59,10 @@ state Exploding
 		A = WFArmor(pawn(owner).FindInventoryType(class'WFArmor'));
 		if (A != None)
 			RangeScale = A.Charge/A.MaxCharge;
-		Spawn(class'WFKamiWave',,, PawnOwner.Location);
 		PawnOwner.Health = -1000;
 		PawnOwner.Died(PawnOwner, 'KamikazeStatus', PawnOwner.Location);
-		PawnOwner.HurtRadius(1000, 650.0 - 350.0*RangeScale, 'KamikazeStatus', 100000, PawnOwner.Location);
+		//PawnOwner.HurtRadius(1000, Max(300, 650.0 - 350.0*RangeScale), 'KamikazeStatus', 100000, PawnOwner.Location);
+		Spawn(class'WFKamiWave',,, PawnOwner.Location);
 	}
 }
 

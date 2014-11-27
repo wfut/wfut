@@ -175,7 +175,7 @@ defaultproperties
      PickupViewMesh=LodMesh'WFMedia.grenpick'
      ThirdPersonMesh=LodMesh'WFMedia.grenthird'
      ThirdPersonScale=.75
-     StatusIcon=Texture'Botpack.Icons.Use8ball'
+     StatusIcon=Texture'WFMedia.WeaponGrenadeLauncher'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.Use8ball'
      Mesh=LodMesh'WFMedia.grenpick'

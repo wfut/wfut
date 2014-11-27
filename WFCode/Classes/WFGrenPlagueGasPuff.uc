@@ -21,6 +21,7 @@ function CauseDamage(pawn Other, vector HitLocation)
 	local class<WFPlayerClassInfo> PCI;
 	local WFStatusInfected s;
 	local bool bGiveStatus;
+	local WFPlayer WFP;
 
 	if ((Other == None) || (Role != ROLE_Authority))
 		return;
@@ -30,8 +31,10 @@ function CauseDamage(pawn Other, vector HitLocation)
 		Other.TakeDamage(Damage, Instigator, HitLocation, vect(0,0,0), 'PlagueGrenade');
 		if (Other.Health > 0)
 		{
-			PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
-			bGiveStatus = ((PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusInfected'))
+			//WFP = WFPlayer(Other);
+			//PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
+			//bGiveStatus = ((PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusInfected'))
+			bGiveStatus = !class'WFPlayerClassInfo'.static.PawnIsImmuneTo(Other, class'WFStatusInfected')
 				&& (Other.FindInventoryType(class'WFStatusVaccinated') == None);
 			bGiveStatus = bGiveStatus && (Other.PlayerReplicationInfo.Team != Instigator.PlayerReplicationInfo.Team);
 			if (bGiveStatus && (FRand() <= InfectOdds))
@@ -65,7 +68,7 @@ simulated function HitWall( vector HitNormal, actor Wall )
 
 defaultproperties
 {
-	Damage=5
+	Damage=1
 	InfectOdds=0.25
 	Speed=50
 	MaxSpeed=75

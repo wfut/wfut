@@ -32,8 +32,8 @@ function bool IsValidTarget(actor Other)
 				return false;
 
         if ( ((P.PlayerReplicationInfo != none) && (SameTeamAs(P.PlayerReplicationInfo.Team))
-        	|| class'WFDisguise'.static.IsDisguised(P.PlayerReplicationInfo))
-        	|| TargetIsCloaked(P))
+        	|| ( !class'WFCloaker'.static.IsHalfCloaked(P) && (class'WFDisguise'.static.IsDisguised(P.PlayerReplicationInfo))
+        		|| TargetIsCloaked(P)) ) )
 				return false;
 
 		if (Other.IsA('WFS_PCSystemAutoCannon') && SameTeamAs(WFS_PCSystemAutoCannon(Other).MyTeam))
@@ -124,4 +124,5 @@ defaultproperties
 	bUseTeamSkins=true
 	GunBaseClass=class'WFGrBase'
 	FovAngle=220.000000
+	bAlwaysRelevant=True
 }

@@ -34,4 +34,5 @@ defaultproperties
      Skin=Texture'JDomN0'
      //Physics=PHYS_Falling
      //RemoteRole=ROLE_None
+     MyDamageType=RailSlug
 }

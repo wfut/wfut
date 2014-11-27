@@ -1,5 +1,7 @@
 class WFPlasmaMedium extends WFPlasmaBomb;
 
+// TODO: limit to 128*6 units range
+
 defaultproperties
 {
 	ExplodeDelay=25

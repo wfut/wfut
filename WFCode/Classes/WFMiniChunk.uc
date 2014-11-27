@@ -29,5 +29,5 @@ defaultproperties
 {
 	//DrawScale=0.400000
 	DrawScale=0.100000
-	Damage=8
+	Damage=12
 }

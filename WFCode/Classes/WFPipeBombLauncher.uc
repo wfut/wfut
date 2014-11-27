@@ -75,6 +75,7 @@ function Fire( float Value )
 	if ( AmmoType.UseAmmo(1) )
 	{
 		GotoState('NormalFire');
+		NotifyFired();
 		bPointing=True;
 		bCanClientFire = true;
 		ClientFire(Value);
@@ -98,6 +99,7 @@ function AltFire( float Value )
 
 	if (NumPipeBombs > 0)
 	{
+		NotifyFired();
 		GotoState('AltFiring');
 		bPointing=True;
 		bCanClientFire = true;
@@ -295,7 +297,7 @@ defaultproperties
      BobDamping=0.975000
      PickupViewMesh=LodMesh'plthird1'
      ThirdPersonMesh=LodMesh'plthird1'
-     StatusIcon=Texture'Botpack.Icons.Use8ball'
+     StatusIcon=Texture'WFMedia.WeaponPipeBombs'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.Use8ball'
      Mesh=LodMesh'plthird1'

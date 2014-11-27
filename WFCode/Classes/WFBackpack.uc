@@ -181,7 +181,7 @@ function PickupFunction(pawn Other)
 			{
 				ArmorInv = WFS_PCSArmor(Item);
 				if (ArmorInv != None)
-					ArmorInv.Charge = Min(ArmorInv.Charge + ArmorAmount, ArmorInv.MaxCharge);
+					ArmorInv.AddArmor(ArmorAmount);
 			}
 
 			// add grenades

@@ -1,43 +1,70 @@
-class WFInfiltratorHUDInfo extends WFHUDInfo;
+class WFInfiltratorHUDInfo extends WFCustomHUDInfo;
 
 var() texture CustomIconTexture;
 
 // could make this a general use function and move to WFHUDInfo and WFITSHUDInfo
 simulated function DrawStatus(out byte bOverrideFunction, Canvas Canvas)
 {
-	local bool bHasDoll;
-	local float X, Y, StatScale;
-	local int IconValue;
+  local byte         Style;
+	local color        DigitBackground;
+  local texture      DigitTexure;
+  local int          ResourceAmount;
+  local WFCustomHUD MyOwnerHUD;
+  local float H1, H2;
 
-	IconValue = GetIconValue();
+  MyOwnerHUD = WFCustomHUD( OwnerHUD );
 
-	if (!OwnerHUD.bHideStatus)
+  // Preserve the current style
+  Style = Canvas.Style;
+
+  Canvas.SetPos( Canvas.ClipX - ( 128 * MyOwnerHUD.MyStatusScale ),
+	               68 * MyOwnerHUD.MyStatusScale );
+
+  MyOwnerHUD.DrawPanel( Canvas,
+                        MyOwnerHUD.EPanel.PLeft,
+                        ERenderStyle.STY_Modulated,
+                        32, 32, MyOwnerHUD.HUDColor,
+												MyOwnerHUD.MyOpacity,
+                        MyOwnerHUD.MyStatusScale );
+  MyOwnerHUD.DrawPanel( Canvas,
+                        MyOwnerHUD.EPanel.PMiddle,
+	                      ERenderStyle.STY_Modulated,
+	                      96, 32, MyOwnerHUD.HUDColor,
+												MyOwnerHUD.MyOpacity,
+	                      MyOwnerHUD.MyStatusScale );
+
+   ResourceAmount = GetIconValue();
+   if( ResourceAmount < 0 )
+     ResourceAmount = 0;
+
+	if (ResourceAmount == 0)
 	{
-		bHasDoll = !(Canvas.ClipX < 400);
-		if (bHasDoll)
-			StatScale = OwnerHUD.Scale * OwnerHUD.StatusScale;
+		// make the colour flash
+		H1 = 1.5 * MyOwnerHUD.TutIconBlink;
+		H2 = 1 - H1;
+		Canvas.DrawColor = MyOwnerHUD.BaseColor * H2 + (MyOwnerHUD.HUDColor - MyOwnerHUD.BaseColor) * H1;
 	}
+	else Canvas.DrawColor = MyOwnerHUD.HUDColor;
+	 Canvas.Style = MyOwnerHUD.MySolidStyle;
 
-	// draw the hud icon
-	Canvas.DrawColor = OwnerHUD.HUDColor;
-	if ( OwnerHUD.bHideStatus && OwnerHUD.bHideAllWeapons )
-	{
-		//X = 0.5 * Canvas.ClipX;
-		//Y = Canvas.ClipY - 128 * OwnerHUD.Scale;
-		X = Canvas.ClipX - 128 * OwnerHUD.Scale;
-		Y = 0;
-	}
-	else
-	{
-		X = Canvas.ClipX - 128 * StatScale - 140 * OwnerHUD.Scale;
-		Y = 128 * OwnerHUD.Scale; // Y=0 for armor, Y=64 for health
-	}
-	Canvas.SetPos(X,Y);
-	Canvas.DrawTile(CustomIconTexture, 128*OwnerHUD.Scale, 64*OwnerHUD.Scale, 0, 0, 128.0, 64.0);
+   Canvas.SetPos( Canvas.ClipX - ( 110 * MyOwnerHUD.MyStatusScale ),
+	                68 * MyOwnerHUD.MyStatusScale );
+   Canvas.DrawTile( Texture'ResourceIcon', 32 * MyOwnerHUD.MyStatusScale,
+	                  32 * MyOwnerHUD.MyStatusScale, 0, 0, 32.0, 32.0);
 
-	// draw the value for the icon
-	Canvas.DrawColor = OwnerHUD.WhiteColor;
-	OwnerHUD.DrawBigNum(Canvas, Max(0,IconValue), X + 4 * OwnerHUD.Scale, Y + 16 * OwnerHUD.Scale, 1);
+
+   Canvas.SetPos( Canvas.ClipX - ( 72 * MyOwnerHUD.MyStatusScale ),
+	                68 * MyOwnerHUD.MyStatusScale );
+   MyOwnerHUD.DrawDigits( Canvas,
+                          ResourceAmount,
+						              3,
+						              MyOwnerHUD.HUDColor,
+						              MyOwnerHUD.HUDBackgroundColor,
+						              MyOwnerHUD.MySolidStyle,
+						              ERenderStyle.STY_Translucent,
+									  MyOwnerHUD.MyStatusScale,
+									  (resourceAmount <= 0));
+
 }
 
 function int GetIconValue()

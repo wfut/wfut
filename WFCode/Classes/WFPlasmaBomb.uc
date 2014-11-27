@@ -21,6 +21,10 @@ var() bool bStartArmed;
 var bool bPlayerDied; // player died while arming the plasma
 var bool bArming;
 
+var bool bHoldPlayer;
+var vector HoldLocation;
+var EPhysics OldPhysics;
+
 var string ArmedEvent;
 
 simulated function PostBeginPlay()
@@ -84,6 +88,10 @@ function FreezePlayer()
 	P = WFS_PCSystemPlayer(Owner);
 	if (P != None)
 		P.FreezePlayer(ArmingDelay, 'SettingPlasma');
+	bHoldPlayer = true;
+	OldPhysics = Owner.Physics;
+	Owner.SetPhysics(PHYS_None);
+	HoldLocation = Location;
 }
 
 function UnfreezePlayer()
@@ -92,6 +100,8 @@ function UnfreezePlayer()
 	P = WFS_PCSystemPlayer(Owner);
 	if (P != None)
 		P.UnfreezePlayer('SettingPlasma');
+	bHoldPlayer = false;
+	Owner.SetPhysics(OldPhysics);
 }
 
 function Explode()
@@ -141,6 +151,14 @@ function Tick(float DeltaTime)
 {
 	if (!bEffectsCreated)
 		CreateEffects();
+
+	if ((Owner != None) && !bPlayerDied && bHoldPlayer)
+	{
+		Owner.Acceleration = vect(0,0,0);
+		Owner.Velocity = vect(0,0,0);
+		if (Owner.Location != Location)
+			Owner.SetLocation(Location);
+	}
 }
 
 function CreateEffects()

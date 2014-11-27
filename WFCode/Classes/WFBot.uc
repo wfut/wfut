@@ -11,6 +11,16 @@ replication
 		Armor;
 }
 
+function bool IsImmuneTo(class<WFPlayerStatus> StatusClass)
+{
+	local bool bIsImmune;
+
+	if (class<WFPlayerClassInfo>(PCInfo) != None)
+		bIsImmune = class<WFPlayerClassInfo>(PCInfo).static.IsImmuneTo(StatusClass);
+
+	return bIsImmune || (FindInventoryType(class'WFSpawnProtector') != None);
+}
+
 function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 						Vector momentum, name damageType)
 {

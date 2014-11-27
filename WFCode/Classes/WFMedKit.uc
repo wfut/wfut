@@ -8,11 +8,14 @@ var() int HealAmount;
 
 var pawn MedKitTarget;
 
+var WFMasterEffect MyEffect;
+
 function Fire( float Value )
 {
 	if (!WeaponActive())
 		return;
 
+	NotifyFired();
 	bPointing=True;
 	bCanClientFire = true;
 	AmbientSound = FireSound;
@@ -21,12 +24,36 @@ function Fire( float Value )
 	//else MedBeam.bHidden = false;
 	SoundVolume = 255*Pawn(Owner).SoundDampening;
 	ClientFire(value);
-	GoToState('NormalFire');
+	GoToState('FireDelay');
+}
+
+simulated state FireDelay
+{
+	function Fire(float Value) { }
+	function AltFire(float Value) { }
+	function bool ClientFire(float value) { return false; }
+	function bool ClientAltFire(float value) { return false; }
+
+Begin:
+	Disable('AnimEnd');
+	PlayStartFiring();
+	FinishAnim();
+	Enable('AnimEnd');
+	PlayFiring();
+	if (Role==ROLE_Authority)
+		GotoState('NormalFire');
+	else GotoState('ClientFiring');
+}
+
+simulated function PlayStartFiring()
+{
+	PlayAnim('Vaccinate', 0.4, 0.1);
 }
 
 simulated function PlayAltFiring()
 {
-	PlayAnim('Fire', 0.5);
+	//PlayAnim('Vaccinate', 0.5);
+	PlayAnim('Vaccinate', 0.3);
 	PlayOwnedSound(AltFireSound, SLOT_Misc, 1.7*Pawn(Owner).SoundDampening,,,);
 }
 
@@ -35,7 +62,7 @@ simulated function PlayFiring()
 	if ( Affector != None )
 		Affector.FireEffect();
 	//PlayOwnedSound(AltFireSound, SLOT_Misc, 1.7*Pawn(Owner).SoundDampening,,,);
-	LoopAnim( 'Shake', 0.9);
+	LoopAnim( 'Heal', 0.4);
 }
 
 function AltFire( float Value )
@@ -67,6 +94,13 @@ ignores AnimEnd;
 		super.BeginState();
 		SetTimer(HealTime, false);
 		AmbientSound = FireSound;
+		if (MyEffect == None)
+		{
+			if (Pawn(Owner).PlayerReplicationInfo.Team == 0)
+				MyEffect = spawn(class'WFMedKitFieldEffectRed', owner,, owner.Location);
+			else
+				MyEffect = spawn(class'WFMedKitFieldEffectBlue', owner,, owner.Location);
+		}
 	}
 
 	function Timer()
@@ -88,6 +122,11 @@ ignores AnimEnd;
 	{
 		SetTimer(0.0, false);
 		AmbientSound = None;
+		if (MyEffect != None)
+		{
+			MyEffect.Destroy();
+			MyEffect = None;
+		}
 		super.EndState();
 	}
 }
@@ -106,17 +145,14 @@ function HealTarget(pawn Other)
 	local effects e;
 	local int MaxHealth;
 
-	if (ValidTarget(Other))
+	MaxHealth = GetMaxHealthFor(Other);
+	if (Other.Health < MaxHealth)
 	{
-		MaxHealth = GetMaxHealthFor(Other);
-		if (Other.Health < MaxHealth)
-		{
-			Other.Health = Min(Other.Health + HealAmount, MaxHealth);
-			e = Spawn(class'WFMedKitHealEffect', Other,, Other.Location);
-			e.Mesh = Other.Mesh;
-		}
-		CurePlayer(Other);
+		Other.Health = Min(Other.Health + HealAmount, MaxHealth);
+		e = Spawn(class'WFMedKitHealEffect', Other,, Other.Location);
+		e.Mesh = Other.Mesh;
 	}
+	CurePlayer(Other);
 }
 
 // remove any bad status effects
@@ -174,6 +210,27 @@ function int GetMaxHealthFor(pawn Other)
 
 state ClientFiring
 {
+	simulated function bool ClientFire( float Value )
+	{
+		if ( bCanClientFire && ((Role == ROLE_Authority) || (AmmoType == None) || (AmmoType.AmmoAmount > 0)) )
+		{
+			if ( (PlayerPawn(Owner) != None)
+				&& ((Level.NetMode == NM_Standalone) || PlayerPawn(Owner).Player.IsA('ViewPort')) )
+			{
+				if ( InstFlash != 0.0 )
+					PlayerPawn(Owner).ClientInstantFlash( InstFlash, InstFog);
+				PlayerPawn(Owner).ShakeView(ShakeTime, ShakeMag, ShakeVert);
+			}
+			if ( Affector != None )
+				Affector.FireEffect();
+			PlayFiring();
+			if ( Role < ROLE_Authority )
+				GotoState('ClientFiring');
+			return true;
+		}
+		return false;
+	}
+
 	simulated function BeginState()
 	{
 		SoundVolume = 255*Pawn(Owner).SoundDampening;
@@ -189,8 +246,8 @@ function bool ValidTarget(pawn Other)
 	GetAxes(Pawn(owner).ViewRotation, X, Y, Z);
 	if ((Other != None) && (Other != Owner) && Other.bIsPlayer && (Other.Health > 0)
 		&& (VSize(Other.Location - Owner.Location) <= MedBeamRange)
-		&& (Other.PlayerReplicationInfo.Team == pawn(Owner).PlayerReplicationInfo.Team)
-		&& ((Normal(Other.Location - Owner.Location) dot X) > 0.7) )
+		&& (Other.PlayerReplicationInfo.Team == pawn(Owner).PlayerReplicationInfo.Team) )
+		//&& ((Normal(Other.Location - Owner.Location) dot X) > 0.7) )
 		return true;
 
 	return false;
@@ -275,12 +332,21 @@ function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNormal, Vect
 	}
 }
 
+simulated function Destroyed()
+{
+	if (MyEffect != None)
+	{
+		MyEffect.Destroy();
+		MyEffect = None;
+	}
+	super.Destroyed();
+}
+
 defaultproperties
 {
-	MedBeamRange=180.0
-	HealAmount=10
+	MedBeamRange=215.0
+	HealAmount=20
 	HealTime=1.0
-	bMeshEnviroMap=True
 	Texture=Texture'JDomN0'
 	AltProjectileClass=class'WFMedKitGasPuff'
 	FireSound=sound'TargetHum'
@@ -297,14 +363,14 @@ defaultproperties
 	SoundVolume=128
 	InventoryGroup=2
 	AutoSwitchPriority=2
-     PlayerViewOffset=(X=3.800000,Y=-1.600000,Z=-1.800000)
-     PlayerViewMesh=LodMesh'Botpack.ImpactHammer'
-     PickupViewMesh=LodMesh'Botpack.ImpPick'
-     ThirdPersonMesh=LodMesh'Botpack.ImpactHandm'
+     ItemName="Med Kit"
+     PlayerViewOffset=(X=2.400000,Y=-1.200000,Z=-1.950000)
+     PlayerViewMesh=LodMesh'WFMedia.medkit'
+     PlayerViewScale=0.100000
+     PickupViewMesh=LodMesh'WFMedia.medthird'
+     ThirdPersonMesh=LodMesh'WFMedia.medthird'
+     StatusIcon=Texture'WFMedia.WeaponMedKit'
      ThirdPersonScale=0.5
-     StatusIcon=Texture'Botpack.Icons.UseHammer'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
-     Icon=Texture'Botpack.Icons.UseHammer'
-     Mesh=LodMesh'Botpack.ImpPick'
     bAltInstantHit=true
 }

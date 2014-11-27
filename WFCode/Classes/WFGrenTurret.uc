@@ -45,4 +45,5 @@ defaultproperties
 	PrimingTime=0.500000
 	NumCopies=1
 	bSingleGrenade=False
+	StatusIcon=Texture'WFMedia.GrenadeTurret'
 }

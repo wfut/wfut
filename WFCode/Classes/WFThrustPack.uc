@@ -1,4 +1,4 @@
-class WFThrustPack extends TournamentPickup;
+class WFThrustPack extends WFPickup;
 
 var() float ThrustSpeed;
 var() float ThrustLift;
@@ -121,7 +121,7 @@ state Thrusting
 	{
 		ThrustTimeLeft--;
 		if (ThrustTimeLeft <= 0)
-			GotoState('Idle2');
+			GotoState('WaitForLanding');
 	}
 
 	function Use(pawn User) { }
@@ -166,8 +166,30 @@ state Thrusting
 			if (status != None)
 				WFStatusLegDamage(status).SetPlayerMovement();
 		}
-		EnableFlagTouch();
 	}
+}
+
+state WaitForLanding
+{
+	function Tick(float DeltaTime)
+	{
+		super.Tick(deltaTime);
+		if (Owner.Physics != PHYS_Falling)
+		{
+			// landed
+			EnableFlagTouch();
+			CheckTouching();
+			GotoState('Idle2');
+		}
+	}
+}
+
+function CheckTouching()
+{
+	local int i;
+	for(i=0; i<4; i++)
+		if (Touching[i] != None)
+			Touching[i].Touch(Owner);
 }
 
 function DisableFlagTouch()

@@ -1,46 +1,65 @@
 //=============================================================================
 // WFReconHUDInfo.
 //=============================================================================
-class WFReconHUDInfo extends WFHUDInfo;
+class WFReconHUDInfo extends WFCustomHUDInfo;
 
 var() texture CustomIconTexture;
 
 // could make this a general use function and move to WFHUDInfo and WFITSHUDInfo
 simulated function DrawStatus(out byte bOverrideFunction, Canvas Canvas)
 {
-	local bool bHasDoll;
-	local float X, Y, StatScale;
-	local int IconValue;
+  local byte         Style;
+	local color        DigitBackground;
+  local texture      DigitTexure;
+  local int          ResourceAmount;
+  local WFCustomHUD MyOwnerHUD;
 
-	IconValue = GetIconValue();
+  MyOwnerHUD = WFCustomHUD( OwnerHUD );
 
-	if (!OwnerHUD.bHideStatus)
-	{
-		bHasDoll = !(Canvas.ClipX < 400);
-		if (bHasDoll)
-			StatScale = OwnerHUD.Scale * OwnerHUD.StatusScale;
-	}
+  // Preserve the current style
+  Style = Canvas.Style;
 
-	// draw the hud icon
-	Canvas.DrawColor = OwnerHUD.HUDColor;
-	if ( OwnerHUD.bHideStatus && OwnerHUD.bHideAllWeapons )
-	{
-		//X = 0.5 * Canvas.ClipX;
-		//Y = Canvas.ClipY - 128 * OwnerHUD.Scale;
-		X = Canvas.ClipX - 128 * OwnerHUD.Scale;
-		Y = 0;
-	}
-	else
-	{
-		X = Canvas.ClipX - 128 * StatScale - 140 * OwnerHUD.Scale;
-		Y = 128 * OwnerHUD.Scale; // Y=0 for armor, Y=64 for health
-	}
-	Canvas.SetPos(X,Y);
-	Canvas.DrawTile(CustomIconTexture, 128*OwnerHUD.Scale, 64*OwnerHUD.Scale, 0, 0, 128.0, 64.0);
+  Canvas.SetPos( Canvas.ClipX - ( 128 * MyOwnerHUD.MyStatusScale ),
+	               68 * MyOwnerHUD.MyStatusScale );
 
-	// draw the value for the icon
-	Canvas.DrawColor = OwnerHUD.WhiteColor;
-	OwnerHUD.DrawBigNum(Canvas, Max(0,IconValue), X + 4 * OwnerHUD.Scale, Y + 16 * OwnerHUD.Scale, 1);
+  MyOwnerHUD.DrawPanel( Canvas,
+                        MyOwnerHUD.EPanel.PLeft,
+                        ERenderStyle.STY_Modulated,
+                        32, 32, MyOwnerHUD.HUDColor,
+												MyOwnerHUD.MyOpacity,
+                        MyOwnerHUD.MyStatusScale );
+  MyOwnerHUD.DrawPanel( Canvas,
+                        MyOwnerHUD.EPanel.PMiddle,
+	                      ERenderStyle.STY_Modulated,
+	                      96, 32, MyOwnerHUD.HUDColor,
+												MyOwnerHUD.MyOpacity,
+	                      MyOwnerHUD.MyStatusScale );
+
+	 Canvas.DrawColor = MyOwnerHUD.HUDColor;
+	 Canvas.Style = MyOwnerHUD.MySolidStyle;
+
+   Canvas.SetPos( Canvas.ClipX - ( 110 * MyOwnerHUD.MyStatusScale ),
+	                68 * MyOwnerHUD.MyStatusScale );
+   Canvas.DrawTile( Texture'ResourceIcon', 32 * MyOwnerHUD.MyStatusScale,
+	                  32 * MyOwnerHUD.MyStatusScale, 0, 0, 32.0, 32.0);
+
+   ResourceAmount = GetIconValue();
+   if( ResourceAmount < 0 )
+   {
+     ResourceAmount = 0;
+   }
+
+   Canvas.SetPos( Canvas.ClipX - ( 72 * MyOwnerHUD.MyStatusScale ),
+	                68 * MyOwnerHUD.MyStatusScale );
+   MyOwnerHUD.DrawDigits( Canvas,
+                          ResourceAmount,
+						              3,
+						              MyOwnerHUD.HUDColor,
+						              MyOwnerHUD.HUDBackgroundColor,
+						              MyOwnerHUD.MySolidStyle,
+						              ERenderStyle.STY_Translucent,
+													MyOwnerHUD.MyStatusScale);
+
 }
 
 function int GetIconValue()

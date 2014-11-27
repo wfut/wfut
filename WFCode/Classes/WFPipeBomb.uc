@@ -1,6 +1,15 @@
 class WFPipeBomb extends WFS_PCSGrenadeProj;
 
 var int Health;
+var WFPipeBomb NextBomb;
+var WFPipeBombList List;
+
+function DetonateAll()
+{
+	if (NextBomb != None)
+		NextBomb.DetonateAll();
+	Detonate();
+}
 
 simulated function PostBeginPlay()
 {
@@ -20,7 +29,7 @@ simulated function PostBeginPlay()
 
 function TakeDamage( int Damage, Pawn EventInstigator, vector HitLocation, vector Momentum, name DamageType)
 {
-	if (Health <= 0)
+	if ((Health <= 0) || bDeleteMe)
 		return;
 
 	if ((EventInstigator == None) || EventInstigator.bIsPlayer)
@@ -30,8 +39,8 @@ function TakeDamage( int Damage, Pawn EventInstigator, vector HitLocation, vecto
 			Health -= Damage;
 		if (Health <= 0)
 		{
-			Detonate();
 			UpdateList();
+			Detonate();
 		}
 	}
 }
@@ -40,19 +49,20 @@ function ServerExplosion(vector HitLocation)
 {
 	BlowUp(HitLocation);
 	spawn(class'ut_spriteballexplosion',,,hitlocation);
-	//UpdateList();
 	Destroy();
 }
 
 function Detonate()
 {
-	ServerExplosion(Location + vect(0,0,16));
+	if (!bDeleteMe)
+	{
+		UpdateList();
+		ServerExplosion(Location + vect(0,0,16));
+	}
 }
 
 function UpdateList()
 {
-	local WFPipeBombList List;
-	List = WFPipeBombList(class'WFS_PlayerClassInfo'.static.FindRelatedActorClass(Instigator, class'WFPipeBombList'));
 	if (List != None)
 		List.RemovePipeBomb(self);
 }

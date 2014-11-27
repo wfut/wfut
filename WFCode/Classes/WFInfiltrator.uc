@@ -126,7 +126,7 @@ defaultproperties
 	Health=100
 	Armor=50
 	DefaultInventory=class'WFInfiltratorInv'
-	//ExtendedHUD=class'WFInfiltratorHUDInfo'
+	ExtendedHUD=class'WFInfiltratorHUDInfo'
 	MeshInfo=class'WFD_TMale2MeshInfo'
 	AltMeshInfo=class'WFD_TMale2BotMeshInfo'
 	bNoImpactHammer=True
@@ -136,7 +136,6 @@ defaultproperties
 	ClassFaceName="WFSkins.Terrik"
 	bAllowFeignDeath=True
 	TranslocatorAmmoUsed=10
-	bCanIdentify=False
 	VoiceType="BotPack.VoiceMaleTwo"
 	bNoEnforcer=True
 }

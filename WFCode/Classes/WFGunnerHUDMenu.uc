@@ -20,10 +20,10 @@ function ProcessSelection(int Selection)
 			PlayerOwner.Special("DeployAlarm");
 			CloseMenu();
 			break;
-		case 8:
+		/*case 8:
 			PlayerOwner.Special("RemoveDecloaker");
 			CloseMenu();
-			break;
+			break;*/
 		case 10:
 			CloseMenu();
 			break;
@@ -33,7 +33,7 @@ function ProcessSelection(int Selection)
 defaultproperties
 {
 	DisplayTime=10
-	NumOptions=8
+	NumOptions=4
 	bAlignAppendString=True
 	SeparatorString=":  "
 	MenuTitle="[ - Gunner Options - ]"

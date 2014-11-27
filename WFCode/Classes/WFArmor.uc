@@ -100,6 +100,13 @@ function int ArmorAbsorbDamage(int Damage, name DamageType, vector HitLocation)
 	return (Damage - ArmorDamage);
 }
 
+// negative values will reduce armor
+function AddArmor(int Amount)
+{
+	super.AddArmor(Amount);
+	UpdateCharge();
+}
+
 function UpdateCharge()
 {
 	local WFBot aBot;

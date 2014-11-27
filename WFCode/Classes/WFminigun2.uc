@@ -193,6 +193,7 @@ function Fire( float Value )
 	}
 	if ( AmmoType.UseAmmo(1) )
 	{
+		NotifyFired();
 		SoundVolume = 255*Pawn(Owner).SoundDampening;
 		Pawn(Owner).PlayRecoil(FiringSpeed);
 		bCanClientFire = true;
@@ -220,6 +221,7 @@ function AltFire( float Value )
 		bPointing=True;
 		bCanClientFire = true;
 		ShotAccuracy = 0.95;
+		NotifyFired();
 		Pawn(Owner).PlayRecoil(FiringSpeed);
 		SoundVolume = 255*Pawn(Owner).SoundDampening;
 		ClientAltFire(value);
@@ -559,10 +561,10 @@ defaultproperties
      AIRating=0.730000
      RefireRate=0.990000
      AltRefireRate=0.990000
-     FireSound=Sound'Botpack.minigun2.M2RegFire'
-     AltFireSound=Sound'Botpack.minigun2.M2AltFire'
+     FireSound=Sound'Botpack.Minigun2.M2RegFire'
+     AltFireSound=Sound'Botpack.Minigun2.M2AltFire'
      SelectSound=Sound'UnrealI.Minigun.MiniSelect'
-     Misc1Sound=Sound'Botpack.minigun2.M2WindDown'
+     Misc1Sound=Sound'Botpack.Minigun2.M2WindDown'
      DeathMessage="%k's %w turned %o into a leaky piece of meat."
      NameColor=(B=0)
      bDrawMuzzleFlash=True
@@ -582,7 +584,7 @@ defaultproperties
      BobDamping=0.975000
      PickupViewMesh=LodMesh'Botpack.MinigunPick'
      ThirdPersonMesh=LodMesh'Botpack.MiniHand'
-     StatusIcon=Texture'Botpack.Icons.UseMini'
+     StatusIcon=Texture'WFMedia.WeaponMachineGun'
      bMuzzleFlashParticles=True
      MuzzleFlashStyle=STY_Translucent
      MuzzleFlashMesh=LodMesh'Botpack.MuzzFlash3'

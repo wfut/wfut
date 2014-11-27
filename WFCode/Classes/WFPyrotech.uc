@@ -9,6 +9,21 @@ var() name FlameDamageType;
 var() float FlameMomentumTransfer;
 var() float FlameStatusScale;
 
+static function ModifyPlayer(pawn Other)
+{
+	local float SpeedScaling;
+
+	if (DeathMatchPlus(Other.Level.Game).bMegaSpeed)
+		SpeedScaling = 1.4;
+	else SpeedScaling = 1.0;
+
+	Other.GroundSpeed = (Other.default.GroundSpeed * SpeedScaling) * 1.1;
+	Other.WaterSpeed = (Other.default.WaterSpeed * SpeedScaling) * 1.1;
+	Other.AirSpeed = (Other.default.AirSpeed * SpeedScaling) * 1.1;
+	Other.AccelRate = (Other.default.AccelRate * SpeedScaling) * 1.1;
+	Other.Mass = Other.default.Mass * 0.9;
+}
+
 static function bool IsImmuneTo(class<WFPlayerStatus> StatusClass)
 {
 	if (StatusClass == class'WFStatusOnFire')
@@ -34,6 +49,7 @@ static function BlowUp(pawn Other, vector HitLocation)
 	local WFStatusOnFire s;
 	local bool bGiveStatus;
 	local class<WFPlayerClassInfo> PCI;
+	local WFPlayer WFP;
 
 	Other.HurtRadius(default.FlameDamage, default.FlameRadius, default.FlameDamageType, default.FlameMomentumTransfer, HitLocation);
 
@@ -43,8 +59,10 @@ static function BlowUp(pawn Other, vector HitLocation)
 		{
 			bGiveStatus = false;
 
-			PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(aPawn));
-			bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusOnFire');
+			//WFP = WFPlayer(aPawn);
+			//PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(aPawn));
+			//bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusOnFire');
+			bGiveStatus = !class'WFPlayerClassInfo'.static.PawnIsImmuneTo(aPawn, class'WFStatusOnFire');
 
 			if (bGiveStatus && (aPawn.PlayerReplicationInfo.Team != Other.PlayerReplicationInfo.Team))
 			{
@@ -67,10 +85,7 @@ defaultproperties
 	ClassNamePlural="Pyrotechs"
 	Health=100
 	Armor=100
-	ExtendedHUD=class'WFS_CTFHUDInfo'
 	DefaultInventory=class'WFPyrotechInv'
-	MeshInfo=class'WFD_TMale1MeshInfo'
-	AltMeshInfo=class'WFD_TMale1BotMeshInfo'
 	ClassDescription="WFCode.WFClassHelpPyrotech"
 	bNoEnforcer=True
 	//bNoTranslocator=True
@@ -82,4 +97,6 @@ defaultproperties
 	ClassSkinName="WFSkins.pyro"
 	ClassFaceName="WFSkins.sygot"
 	VoiceType="BotPack.VoiceMaleOne"
+    MeshInfo=Class'WFCode.WFPyrotechMeshInfo'
+    AltMeshInfo=Class'WFCode.WFPyrotechBotMeshInfo'
 }

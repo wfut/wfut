@@ -2,18 +2,18 @@ class WFPipeBombList extends WFS_PCSystemInfo;
 
 var() int MaxPipeBombs;
 var int NumPipeBombs;
-var WFPipeBomb PipeBombList[10];
+//var WFPipeBomb PipeBombList[10];
+var WFPipeBomb FirstPipeBomb;
 var WFPipeBombLauncher PBL;
 
 function DetPipes()
 {
-	local int i;
-	for (i=0; i<NumPipeBombs; i++)
-		if (PipeBombList[i] != None)
-		{
-			PipeBombList[i].Detonate();
-			PipeBombList[i] = None;
-		}
+	if (FirstPipeBomb != None)
+	{
+		FirstPipeBomb.DetonateAll();
+		FirstPipeBomb = None;
+	}
+
 	NumPipeBombs = 0;
 	if (PBL != None)
 		PBL.NumPipeBombs = 0;
@@ -21,53 +21,101 @@ function DetPipes()
 
 function AddPipeBomb(WFPipeBomb NewPipeBomb)
 {
-	local int i;
-	local WFPipeBomb b;
+	local WFPipeBomb pb;
 
 	if (NewPipeBomb == None)
 		return;
 
-	if (NumPipeBombs == MaxPipeBombs)
-	{
-		if (PipeBombList[0] != None)
-			PipeBombList[0].Detonate();
-
-		for (i=0; i<NumPipeBombs; i++)
-		{
-			if (i == NumPipeBombs-1)
-				PipeBombList[i] = NewPipeBomb;
-			else PipeBombList[i] = PipeBombList[i+1];
-		}
-	}
+	NewPipeBomb.List = self;
+	if (FirstPipeBomb == None)
+		FirstPipeBomb = NewPipeBomb;
 	else
 	{
-		NumPipeBombs++;
-		PipeBombList[NumPipeBombs-1] = NewPipeBomb;
+		NewPipeBomb.NextBomb = FirstPipeBomb;
+		FirstPipeBomb = NewPipeBomb;
 	}
 
+	NumPipeBombs++;
+	if (NumPipeBombs > MaxPipeBombs)
+	{
+		DetonateOldest();
+		NumPipeBombs = MaxPipeBombs;
+	}
 	if (PBL != None)
 		PBL.NumPipeBombs = NumPipeBombs;
 }
 
-function RemovePipeBomb(WFPipeBomb OldPipeBomb)
+function DetonateOldest()
 {
-	local int i, j;
-	for (i=0; i<NumPipeBombs; i++)
+	local WFPipeBomb pb, lastpb;
+
+	if (FirstPipeBomb == None)
+		return;
+
+	if (FirstPipeBomb.NextBomb == None)
 	{
-		if (PipeBombList[i] == OldPipeBomb)
+		FirstPipeBomb.Detonate();
+		FirstPipeBomb = None;
+		NumPipeBombs--;
+		if (PBL != None)
+			PBL.NumPipeBombs = NumPipeBombs;
+		return;
+	}
+
+	lastpb = FirstPipeBomb;
+	for (pb=FirstPipeBomb.NextBomb; pb!=None; pb=pb.NextBomb)
+	{
+		if (pb.NextBomb == None)
 		{
-			PipeBombList[i] = None;
-			for (j=i; j<NumPipeBombs; j++)
-			{
-				if (j == NumPipeBombs-1)
-					PipeBombList[j] = None;
-				else PipeBombList[j] = PipeBombList[j+1];
-			}
+			pb.Detonate();
+			if (lastpb != None)
+				lastpb.NextBomb = None;
 			NumPipeBombs--;
 			if (PBL != None)
 				PBL.NumPipeBombs = NumPipeBombs;
 			break;
 		}
+		lastpb = pb;
+	}
+}
+
+function RemovePipeBomb(WFPipeBomb OldPipeBomb)
+{
+	local WFPipeBomb pb, lastpb;
+	local bool bRemoved;
+
+	if ((FirstPipeBomb == None) || (OldPipeBomb == None))
+		return;
+
+	bRemoved = false;
+	if (OldPipeBomb == FirstPipeBomb)
+	{
+		pb = FirstPipeBomb.NextBomb;
+		FirstPipeBomb.NextBomb = None;
+		FirstPipeBomb = pb;
+		bRemoved = true;
+	}
+	else
+	{
+		for (pb=FirstPipeBomb; pb!=None; pb=pb.NextBomb)
+		{
+			if (pb == OldPipeBomb)
+			{
+				pb = OldPipeBomb.NextBomb;
+				if (lastpb != None)
+					lastpb.NextBomb = pb;
+				bRemoved = true;
+				break;
+			}
+			lastpb = pb;
+		}
+	}
+
+	if (bRemoved)
+	{
+		NumPipeBombs--;
+		if (PBL != None)
+			PBL.NumPipeBombs = NumPipeBombs;
 	}
 }
 

@@ -116,7 +116,7 @@ function Timer()
 	UsedUp();
 }
 
-simulated function StatusTick( float DeltaTime )
+simulated function AdjustViewRotation( float DeltaTime )
 {
 	if (bInitialised)
 		SwayView(DeltaTime);

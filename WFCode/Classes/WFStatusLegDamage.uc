@@ -74,4 +74,5 @@ defaultproperties
 	MovementScale=0.500000
 	StatusType="Leg damage"
 	StatusID=7
+    LifeSpan=10.000000
 }

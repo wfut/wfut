@@ -15,6 +15,7 @@ function Fire( float Value )
 	}
 	if ( (GetStateName() == 'AltFiring') || AmmoType.UseAmmo(1) )
 	{
+		NotifyFired();
 		GotoState ('NormalFire');
 		bPointing=True;
 		bCanClientFire = true;
@@ -184,7 +185,7 @@ state ClientFiring
 }
 defaultproperties
 {
-     AmmoName=class'BioAmmo'
+     AmmoName=Class'WFCode.WFFlameThrowerAmmo'
      FireOffset=(X=15.000000,Y=-9.000000,Z=-16.000000)
      DeathMessage="%o drank a glass of %k's dripping green load."
      PickupAmmoCount=25
@@ -201,4 +202,5 @@ defaultproperties
      bNoSmooth=False
      CollisionRadius=28.000000
      CollisionHeight=15.000000
+     StatusIcon=Texture'WFMedia.WeaponFlameThrower'
 }

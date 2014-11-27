@@ -82,7 +82,7 @@ function ChangeDisguise(byte NewTeam, class<WFS_PlayerClassInfo> NewPCI)
 		class'WFPlayerClassInfo'.static.SetClassName(pawn(Owner), NewPCI.default.ClassName);
 	}
 
-	UpdateMeshInfo();
+	UpdateDPMSInfo();
 
 	if (bChangedClass || bChangedTeam)
 	{
@@ -109,22 +109,31 @@ function Timer()
 	//Owner.SetDefaultDisplayProperties();
 }
 
-function UpdateMeshInfo()
+function UpdateDPMSInfo()
 {
 	local class<WFD_DPMSMeshInfo> MI;
 
-	// update the WFD_DPMSMeshInfo
 	if (PlayerOwner != None)
 	{
+		// update the WFD_DPMSMeshInfo
 		MI = DisguisePCI.default.MeshInfo;
 		PlayerOwner.MeshInfo = DisguisePCI.default.MeshInfo;
 		PlayerOwner.Mesh = MI.default.PlayerMesh;
+		// update the WFD_DPMSSoundInfo
+		if (DisguisePCI.default.SoundInfo != None)
+			PlayerOwner.SoundInfo = DisguisePCI.default.SoundInfo;
+		else PlayerOwner.SoundInfo = MI.default.DefaultSoundClass;
 	}
 	else if (BotOwner != None)
 	{
+	// update the WFD_DPMSMeshInfo
 		MI = DisguisePCI.default.AltMeshInfo;
 		BotOwner.MeshInfo = DisguisePCI.default.AltMeshInfo;
 		BotOwner.Mesh = MI.default.PlayerMesh;
+		// update the WFD_DPMSSoundInfo
+		if (DisguisePCI.default.SoundInfo != None)
+			BotOwner.SoundInfo = DisguisePCI.default.SoundInfo;
+		else BotOwner.SoundInfo = MI.default.DefaultSoundClass;
 	}
 
 	MI.static.SetMultiSkin(
@@ -160,7 +169,7 @@ function RemoveDisguise(optional bool bNoMessage)
 	DisguisePCI = class'WFS_PlayerClassInfo'.static.GetPCIFor(pawn(Owner));
 	DisguiseTeam = pawn(Owner).PlayerReplicationInfo.Team;
 	class'WFPlayerClassInfo'.static.SetClassName(pawn(Owner), DisguisePCI.default.ClassName);
-	UpdateMeshInfo();
+	UpdateDPMSInfo();
 
 	if (!bNoMessage && (PawnOwner != None))
 		PawnOwner.ClientMessage(ExpireMessage, 'CriticalEvent');
@@ -236,12 +245,18 @@ state Disguised
 		}
 	}
 
+	function WeaponFired(Weapon WeaponUsed) { if (!ValidWeaponType(WeaponUsed)) RemoveDisguise(); }
+	function GrenadeThrown(WFGrenadeItem GrenadeUsed) { RemoveDisguise(); }
+
 	function EndState()
 	{
 		ClearStatusFlag();
 		bDisguised = false;
 	}
 }
+
+function WeaponFired(Weapon WeaponUsed);
+function GrenadeThrown(WFGrenadeItem GrenadeUsed);
 
 function Destroyed()
 {

@@ -113,6 +113,7 @@ function Fire( float Value )
 	}
 	if (AmmoType.UseAmmo(1))
 	{
+		NotifyFired();
 		bCanClientFire = true;
 		bPointing=True;
 		Start = Owner.Location + CalcDrawOffset();
@@ -173,6 +174,7 @@ function AltFire( float Value )
 	}
 	if (AmmoType.UseAmmo(1))
 	{
+		NotifyFired();
 		Pawn(Owner).PlayRecoil(FiringSpeed);
 		bPointing=True;
 		bCanClientFire = true;

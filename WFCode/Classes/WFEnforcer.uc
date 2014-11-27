@@ -320,6 +320,7 @@ function Fire(float Value)
 	}
 	if ( AmmoType.UseAmmo(1) )
 	{
+		NotifyFired();
 		GotoState('NormalFire');
 		bCanClientFire = true;
 		bPointing=True;
@@ -374,6 +375,7 @@ function AltFire( float Value )
 	}
 	if (AmmoType.AmmoAmount>0)
 	{
+		NotifyFired();
 		if ( SlaveEnforcer != None )
 			Pawn(Owner).PlayRecoil(3 * FiringSpeed);
 		else if ( !bIsSlave )
@@ -603,6 +605,7 @@ Begin:
 Repeater:
 	if (AmmoType.UseAmmo(1))
 	{
+		NotifyFired();
 		FlashCount++;
 		if ( SlaveEnforcer != None )
 			Pawn(Owner).PlayRecoil(3 * FiringSpeed);
@@ -810,10 +813,10 @@ defaultproperties
      AIRating=0.250000
      RefireRate=0.800000
      AltRefireRate=0.870000
-     FireSound=Sound'Botpack.enforcer.E_Shot'
+     FireSound=Sound'Botpack.Enforcer.E_Shot'
      AltFireSound=Sound'UnrealShare.AutoMag.shot'
-     CockingSound=Sound'Botpack.enforcer.Cocking'
-     SelectSound=Sound'Botpack.enforcer.Cocking'
+     CockingSound=Sound'Botpack.Enforcer.Cocking'
+     SelectSound=Sound'Botpack.Enforcer.Cocking'
      DeathMessage="%k riddled %o full of holes with the %w."
      NameColor=(R=200,G=200)
      bDrawMuzzleFlash=True
@@ -832,7 +835,7 @@ defaultproperties
      PlayerViewMesh=LodMesh'Botpack.AutoML'
      PickupViewMesh=LodMesh'Botpack.MagPick'
      ThirdPersonMesh=LodMesh'Botpack.AutoHand'
-     StatusIcon=Texture'Botpack.Icons.UseAutoM'
+     StatusIcon=Texture'WFMedia.WeaponEnforcer'
      bMuzzleFlashParticles=True
      MuzzleFlashStyle=STY_Translucent
      MuzzleFlashMesh=LodMesh'Botpack.muzzEF3'

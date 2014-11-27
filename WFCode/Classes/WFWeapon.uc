@@ -14,6 +14,17 @@ function function PostBeginPlay()
 // serverside weapon event
 function WeaponEvent(name EventType);
 
+function DropFrom(vector StartLocation)
+{
+	if (!bCanThrow)
+	{
+		Destroy();
+		return;
+	}
+
+	super.DropFrom(StartLocation);
+}
+
 function bool WeaponActive()
 {
 	if ((Owner != None) && Owner.IsA('Bot'))
@@ -88,6 +99,7 @@ function Fire( float Value )
 	}
 	if ( AmmoType.UseAmmo(1) )
 	{
+		NotifyFired();
 		GotoState('NormalFire');
 		bPointing=True;
 		bCanClientFire = true;
@@ -98,6 +110,27 @@ function Fire( float Value )
 			TraceFire(0.0);
 		else
 			ProjectileFire(ProjectileClass, ProjectileSpeed, bWarnTarget);
+	}
+}
+
+function NotifyFired()
+{
+	local inventory Item;
+
+	for (Item = pawn(Owner).Inventory; Item!=None; Item = Item.Inventory)
+	{
+		if (WFPickup(Item) != None)
+			WFPickup(Item).WeaponFired(self);
+		/*
+		if (WFCloaker(Item) != None)
+			WFCloaker(Item).WeaponFired(self);
+
+		if (WFDisguise(Item) != None)
+			WFDisguise(Item).WeaponFired(self);
+
+		if (WFSawnProtector(Item) != None)
+			WFDisguise(Item).WeaponFired(self);
+		*/
 	}
 }
 
@@ -113,6 +146,7 @@ function AltFire( float Value )
 	}
 	if (AmmoType.UseAmmo(1))
 	{
+		NotifyFired();
 		GotoState('AltFiring');
 		bPointing=True;
 		bCanClientFire = true;

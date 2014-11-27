@@ -22,6 +22,7 @@ function Fire( float Value )
 	}
 	if ( AmmoType.UseAmmo(1) )
 	{
+		NotifyFired();
 		GotoState ('NormalFire');
 		bPointing=True;
 		bCanClientFire = true;
@@ -41,6 +42,7 @@ function AltFire( float Value )
 	}
 	if (AmmoType.AmmoAmount > 1)
 	{
+		NotifyFired();
 		GotoState ('AltFireSwitchDown');
 		bPointing=True;
 		bCanClientFire = true;
@@ -419,8 +421,8 @@ defaultproperties
      PickupViewScale=0.500000
      ThirdPersonMesh=LodMesh'WFPlazer'
      ThirdPersonScale=0.500000
-     StatusIcon=Texture'IconLazer'
-     Icon=Texture'UseLazer'
+     StatusIcon=Texture'WFMedia.WeaponPlasmaLaser'
+     Icon=None
      Mesh=LodMesh'WFPlazer'
      bNoSmooth=False
      CollisionHeight=15.000000

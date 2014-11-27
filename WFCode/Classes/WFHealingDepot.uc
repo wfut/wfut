@@ -36,7 +36,7 @@ function PostBeginPlay()
 
 simulated function Tick(float DeltaTime)
 {
-	if (MyEffect != None)
+	if ((MyEffect != None) && (MyEffect.Location != Location + EffectOffset))
 		MyEffect.SetLocation(Location + EffectOffset);
 }
 

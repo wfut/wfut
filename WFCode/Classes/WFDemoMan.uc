@@ -16,12 +16,20 @@ static function bool IsClientSideCommand(string SpecialString)
 static function PlayerDied(pawn Other, pawn Killer, name damageType, vector HitLocation)
 {
 	local WFGrenFreezeProj g;
+	local WFPipeBombTrigger PBT;
 
 	// remove any active Freeze Grenades
 	foreach Other.AllActors(class'WFGrenFreezeProj', g)
 	{
 		if ((g != None) && !g.bDeleteMe && (g.Instigator == Other))
 			g.Timer(); // make grenades expire early
+	}
+
+	// remove any active Pipebomb Triggers
+	foreach Other.AllActors(class'WFPipeBombTrigger', PBT)
+	{
+		if ((PBT != None) && !PBT.bDeleteMe && (PBT.Instigator == Other))
+			PBT.Destroy();
 	}
 }
 
@@ -37,13 +45,8 @@ static function DoSpecial(pawn Other, string SpecialString, optional name Type)
 		SetTripmine(Other);
 	else if (SpecialString ~= "RemoveMine")
 		RemoveTripmine(Other);
-}
-
-
-static function SetTripmine(pawn Other)
-{
-	//Log("Setting mine");
-	TraceMineWall(Other);
+	else if (Left(SpecialString, 13) ~= "DeployTrigger")
+		DeployPipeTrigger(Other, Right(SpecialString, Len(SpecialString) - 14));
 }
 
 static function RemoveTripmine(pawn Other)
@@ -90,7 +93,7 @@ static function RemoveAllTripmines(pawn Other)
 		if ((WFL != None) && !WFL.bDeleteMe) WFL.Destroy();
 }
 
-static function TraceMineWall(pawn Other)
+static function SetTripmine(pawn Other)
 {
 	local vector HitLocation, HitNormal, StartTrace, EndTrace, X,Y,Z;
 	local actor HitActor;
@@ -121,6 +124,44 @@ static function TraceMineWall(pawn Other)
 
 }
 
+
+static function DeployPipeTrigger(pawn Other, string Delay)
+{
+	local vector X, Y, Z;
+	local WFPipeBombTrigger PBT;
+	local float TriggerDelay;
+
+	TriggerDelay = FClamp(float(Delay), 1.0, 3.0);
+	if (Delay == "") Delay = "1";
+
+	foreach Other.AllActors(class'WFPipeBombTrigger', PBT)
+		if ((PBT != None) && (PBT.Instigator == Other))
+			break;
+
+	if ((PBT != None) && !PBT.bCanMove)
+	{
+		Other.ClientMessage("Cannot re-deploy a Proximity Trigger within 2 seconds of deploying on a surface or wall.", 'Critical');
+		return;
+	}
+
+	Other.ClientMessage("Deploying "$delay$" second delay Proximity Trigger.", 'Critical');
+
+	if (PBT != None)
+	{
+		PBT.spawn(class'EnhancedRespawn', PBT,, PBT.Location);
+		PBT.Destroy();
+		PBT = None;
+	}
+
+	PBT = None;
+	GetAxes(Other.ViewRotation,X,Y,Z);
+	PBT = Other.spawn(class'WFPipeBombTrigger', Other,, Other.Location + Other.Eyeheight*Z, Other.ViewRotation);
+	PBT.SetPhysics(PHYS_Falling);
+	PBT.Instigator = Other;
+	PBT.TriggerDelay = TriggerDelay;
+	PBT.OwnerTeam = Other.PlayerReplicationInfo.Team;
+	PBT.Velocity = vector(Other.ViewRotation) * 350 + vect(0,0,1)*100;
+}
 
 defaultproperties
 {

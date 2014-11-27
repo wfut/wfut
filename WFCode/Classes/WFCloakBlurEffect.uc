@@ -1,6 +1,6 @@
 class WFCloakBlurEffect extends WFMotionBlurEffect;
 
-function InitFor(actor Other)
+simulated function InitFor(actor Other)
 {
 	Mesh = Other.Mesh;
 	Fatness = Other.Fatness;

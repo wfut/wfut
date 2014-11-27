@@ -43,6 +43,9 @@ function bool CheckAlarmRadius()
 	local int i;
 	local pawn p;
 
+	if ((Owner != None) && (Location != Owner.Location))
+		SetLocation(Owner.Location);
+
 	for (i=0; i<4; i++)
 	{
 		if (Touching[i] != None)

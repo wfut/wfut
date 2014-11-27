@@ -210,6 +210,7 @@ function Fire( float Value )
 	}
 	if (AmmoType.AmmoAmount > 0)
 	{
+		NotifyFired();
 		GotoState('SpinUp');
 		bPointing=True;
 		bCanClientFire = true;
@@ -232,6 +233,7 @@ function AltFire( float Value )
 	}
 	if (AmmoType.AmmoAmount > 0)
 	{
+		NotifyFired();
 		GotoState('SpinUp');
 		bPointing=True;
 		bCanClientFire = true;
@@ -446,7 +448,7 @@ function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNormal, Vect
 		{
 			dscale = 1.0 - ((dist-EffectiveRange)/(MinDamageRange-EffectiveRange));
 			dmgamt = int(FClamp(float(rndDam)*dscale, MinDamage, rndDam));
-			log("-- dist: "$dist$"   dscale: "$dscale$"   rdnDam: "$rndDam$"   dmgamt: "$dmgamt);
+			//log("-- dist: "$dist$"   dscale: "$dscale$"   rdnDam: "$rndDam$"   dmgamt: "$dmgamt);
 		}
 		else dmgamt = rndDam;
 		mo = FClamp(650.0*(1.0 - (dist/2500.0)), 275.0, 650.0);
@@ -765,7 +767,7 @@ defaultproperties
      PickupViewMesh=LodMesh'chainpick'
      ThirdPersonMesh=LodMesh'chainthird'
      ThirdpersonScale=1.6
-     StatusIcon=Texture'Botpack.Icons.UseMini'
+     StatusIcon=Texture'WFMedia.WeaponMegaChainCannon'
      bMuzzleFlashParticles=True
      MuzzleFlashStyle=STY_Translucent
      MuzzleFlashMesh=LodMesh'Botpack.MuzzFlash3'

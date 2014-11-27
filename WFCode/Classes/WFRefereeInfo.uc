@@ -124,15 +124,32 @@ function RefLogin(WFPlayer Other, coerce string LoginPwd)
 {
     local int Team;
     local TeamGamePlus TGP;
+    local WFPlayer WFP;
+ 	local float logintime;
+ 	local int MaxAttempts;
 
     if ((Other == None) || Other.bReferee || (RefPassword ~= ""))
 		return;
 
-    if ((MaxReferees > 0) && (NumReferees == MaxReferees))
+ 	WFP = Other; // urgh, should change this :o/
+ 	if ((WFP == None) || WFP.bRefLoginDisabled)
+ 		return;
+
+ 	if ((MaxReferees > 0) && (NumReferees == MaxReferees))
     {
         Other.ClientMessage("Maximum number of referees already logged in");
         return;
     }
+
+	MaxAttempts = WFGame(Level.Game).MaxLoginAttempts;
+
+ 	if (WFP.NumRefLogins == 0)
+ 	{
+ 		WFP.NumRefLogins++;
+ 		WFP.FirstRefLoginTime = Level.TimeSeconds;
+ 	}
+ 	else
+ 		WFP.NumRefLogins++;
 
     // check password
     if (LoginPwd ~= RefPassword)
@@ -161,7 +178,18 @@ function RefLogin(WFPlayer Other, coerce string LoginPwd)
         BroadcastMessage(Other.PlayerReplicationInfo.PlayerName$" became a referee");
 
         NumReferees++;
+
+ 		WFP.NumRefLogins = 0;
+ 		WFP.FirstRefLoginTime = 0.0;
     }
+	else if (WFP.NumRefLogins > MaxAttempts)
+	{
+ 		// check to see if player is flooding to try to gain the password
+		WFP.bRefLoginDisabled = true;
+		WFP.NumRefLogins = 0;
+		WFP.FirstRefLoginTime = 0.0;
+		Log("INFO: REFLOGIN: "$WFP.PlayerReplicationInfo.PlayerName$" (IP: "$WFP.GetPlayerNetworkAddress()$") failed to log in within "$MaxAttempts$" attempts, REFEREE login disabled for this player");
+	}
 }
 
 function ClearPCI(WFPlayer Other)

@@ -20,4 +20,5 @@ defaultproperties
 	CollisionHeight=8.000000
 	PrimingTime=0.500000
 	bSingleGrenade=True
+	StatusIcon=Texture'WFMedia.GrenadeFlash'
 }

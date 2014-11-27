@@ -95,6 +95,10 @@ state Dropped
 					}
 					else if ( Holder.IsA('TournamentPlayer') && TournamentPlayer(Holder).bAutoTaunt )
 						Holder.SendTeamMessage(None, 'OTHER', 8, 10);
+
+					// send flag collected event
+					class'WFPlayerClassInfo'.static.SendEvent(pawn(Other), "flag_pickedup_own");
+
 					BroadcastLocalizedMessage( class'CTFMessage', 4, Holder.PlayerReplicationInfo, None, CTFGame(Level.Game).Teams[Team] );
 					if (Level.Game.WorldLog != None)
 						Level.Game.WorldLog.LogSpecialEvent("flag_pickedup", Holder.PlayerReplicationInfo.PlayerID, CTFGame(Level.Game).Teams[Team].TeamIndex);
@@ -116,6 +120,9 @@ state Dropped
 				}
 				else if ( Holder.IsA('TournamentPlayer') && TournamentPlayer(Holder).bAutoTaunt )
 					Holder.SendTeamMessage(None, 'OTHER', 2, 10);
+
+				// send flag collected event
+				class'WFPlayerClassInfo'.static.SendEvent(pawn(Other), "flag_pickedup");
 			}
 			BroadcastLocalizedMessage( class'CTFMessage', 4, Holder.PlayerReplicationInfo, None, CTFGame(Level.Game).Teams[Team] );
 			if (Level.Game.WorldLog != None)

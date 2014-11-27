@@ -19,6 +19,7 @@ function CauseDamage(pawn Other, vector HitLocation)
 	local class<WFPlayerClassInfo> PCI;
 	local WFStatusInfected s;
 	local bool bGiveStatus;
+	local WFPlayer WFP;
 
 	if ((Level.NetMode == NM_Client) || (Other == None))
 		return;
@@ -28,8 +29,10 @@ function CauseDamage(pawn Other, vector HitLocation)
 		Other.TakeDamage(1*byte(FRand()<0.2), Instigator, HitLocation, vect(0,0,0), 'Gassed');
 		if (Other.Health > 0)
 		{
-			PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
-			bGiveStatus = ((PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusInfected'))
+			//WFP = WFPlayer(Other);
+			//PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
+			//bGiveStatus = ((PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusInfected'))
+			bGiveStatus = (!class'WFPlayerClassInfo'.static.PawnIsImmuneTo(Other, class'WFStatusInfected'))
 				&& (Other.FindInventoryType(class'WFStatusVaccinated') == None);
 			bGiveStatus = bGiveStatus && (Other.PlayerReplicationInfo.Team != Instigator.PlayerReplicationInfo.Team);
 			if (bGiveStatus && (FRand() <= InfectOdds))

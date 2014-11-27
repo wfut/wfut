@@ -6,7 +6,7 @@ class WFRDUMesh extends WFMeshImports;
 //firstpersonview
 
 #exec MESH  MODELIMPORT MESH=ckrdufirst1Mesh MODELFILE=models\ckrdufirst1.PSK LODSTYLE=10
-#exec MESH  ORIGIN MESH=ckrdufirst1Mesh X=0 Y=0 Z=0 YAW=0 PITCH=0 ROLL=0
+#exec MESH  ORIGIN MESH=ckrdufirst1Mesh X=0 Y=0 Z=0 YAW=-128.0 PITCH=0 ROLL=0
 #exec ANIM  IMPORT ANIM=ckrdufirst1Anims ANIMFILE=models\ckrdufirst.PSA COMPRESS=1 MAXKEYS=999999
 #exec MESHMAP   SCALE MESHMAP=ckrdufirst1Mesh X=1.0 Y=1.0 Z=1.0
 #exec MESH  DEFAULTANIM MESH=ckrdufirst1Mesh ANIM=ckrdufirst1Anims

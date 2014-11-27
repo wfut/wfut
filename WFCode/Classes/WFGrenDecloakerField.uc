@@ -57,9 +57,10 @@ function Decloak(pawn Other)
 			Inv.Charge = 0;
 		else if (Inv.IsA('WFCloaker') && Inv.bActive)
 		{
-			WFCloaker(Inv).ActivateDelay = 0;
-			Inv.Activate();
-			WFCloaker(Inv).ActivateDelay = 5;
+			Inv.Charge = 0;
+			//WFCloaker(Inv).ActivateDelay = 0;
+			//Inv.Activate();
+			//WFCloaker(Inv).ActivateDelay = 5;
 		}
 	}
 }
@@ -102,6 +103,10 @@ function Touch( actor Other )
 function Tick(float DeltaTime)
 {
 	local actor a;
+
+	if ((Owner != None) && (Location != Owner.Location))
+		SetLocation(Owner.Location);
+
 	if ((Level.TimeSeconds - LastEffectTime) >= NextEffectTime)
 	{
 		a = spawn(class'WFGrenDecloakerFieldEffect',,, Location + 8*vect(0,0,1));

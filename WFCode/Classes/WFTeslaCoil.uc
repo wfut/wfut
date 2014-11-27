@@ -165,6 +165,7 @@ function Fire( float Value )
 	}
 	if (AmmoType.UseAmmo(PriAmmoUsed))
 	{
+		NotifyFired();
 		GotoState('NormalFire');
 		bCanClientFire = true;
 		bPointing=True;
@@ -193,6 +194,7 @@ function AltFire( float Value )
 	}
 	if (AmmoType.UseAmmo(AltAmmoUsed))
 	{
+		NotifyFired();
 		GotoState('AltFiring');
 		bCanClientFire = true;
 		bPointing=True;
@@ -506,7 +508,7 @@ defaultproperties
      PickupViewMesh=LodMesh'Botpack.PulsePickup'
      ThirdPersonMesh=LodMesh'Botpack.PulseGun3rd'
      ThirdPersonScale=0.400000
-     StatusIcon=Texture'Botpack.Icons.UsePulse'
+     StatusIcon=Texture'WFMedia.WeaponTesla'
      bMuzzleFlashParticles=True
      MuzzleFlashStyle=STY_Translucent
      MuzzleFlashMesh=LodMesh'Botpack.muzzPF3'

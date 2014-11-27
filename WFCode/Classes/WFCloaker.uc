@@ -1,15 +1,21 @@
 //=============================================================================
 // WFCloaker.
 //=============================================================================
-class WFCloaker extends TournamentPickup;
+class WFCloaker extends WFPickup;
 
 var() int MaxCharge;
 var() int MinChargeToActivate;
+var() int ReChargeRate;
 
 var WFCloakEffect MyEffect;
 var effects MotionEffect;
 var bool bFadeIn;
 var int ActivateDelay;
+
+var bool bPlayerMoving;
+var bool bMovementDrainOnly;
+
+var int WeaponCost, GrenadeCost;
 
 function PreBeginPlay()
 {
@@ -44,15 +50,15 @@ function Timer()
 {
 	if (ActivateDelay > 0)
 		ActivateDelay--;
-	/*if (!bActive)
-		Charge = Min(Charge + 1, MaxCharge);
+	if (!bActive)
+		Charge = Min(Charge + ReChargeRate, MaxCharge);
 	else
 	{
-		Charge--;
+		if (!bMovementDrainOnly || bPlayerMoving)
+			Charge = Max(Charge - 1, 0);
 		Pawn(Owner).Visibility = 10;
-		if (Charge <= 0)
-			Activate();
-	}*/
+	}
+	bPlayerMoving = false;
 }
 
 state Activated
@@ -60,7 +66,8 @@ state Activated
 	function BeginState()
 	{
 		bActive = true;
-		Owner.PlaySound(ActivateSound,,12.0);
+		if (Owner != None)
+			Owner.PlaySound(ActivateSound,,12.0);
 		SetOwnerDisplay();
 		MyEffect.FadeOut();
 		SetTimer(1.0, true);
@@ -101,11 +108,20 @@ state Activated
 			ActivateDelay = 0;
 			Activate();
 		}
-		else if (((pawn(Owner).bFire != 0) || (pawn(Owner).bAltFire != 0))
-			&& !ValidWeapon(pawn(Owner).Weapon))
+		bPlayerMoving = bPlayerMoving || (VSize(Owner.Velocity) > 10);
+		// FIXME - move this notify to WFWeapon
+		//else if (((pawn(Owner).bFire != 0) || (pawn(Owner).bAltFire != 0))
+		//	&& !ValidWeapon(pawn(Owner).Weapon, pawn(Owner).bAltFire != 0))
+		//	PlayerFired(pawn(Owner).Weapon);
+
+		if (Charge == 0)
 		{
-			ActivateDelay = 0;
-			Activate();
+			// render cloak useless vs defences when charge is 0
+			Owner.texture = Texture'JDomN0';
+			Owner.bHidden = false;
+			Owner.ScaleGlow = 0.5;
+			if (pawn(Owner).Visibility == 10)
+				pawn(Owner).Visibility = pawn(Owner).default.Visibility;
 		}
 		else if (VSize(Owner.Velocity) < 50.0)
 			Owner.bHidden = true;
@@ -113,7 +129,7 @@ state Activated
 			Owner.bHidden = false;
 
 		if (MotionEffect != None)
-			MotionEffect.bHidden = !bActive || (bActive && (VSize(Owner.Velocity) < 250.0));
+			MotionEffect.bHidden = !bActive || (bActive && (Charge > 0));
 
 		super.Tick(DeltaTime);
 	}
@@ -139,11 +155,23 @@ state Activated
 		if (PawnOwner.Visibility == 10)
 			PawnOwner.Visibility = PawnOwner.default.Visibility;
 		PawnOwner.SetDefaultDisplayProperties();
+		Owner.ScaleGlow = 1.0; // should be the default
 		if( PawnOwner.Inventory != None )
 			PawnOwner.Inventory.SetOwnerDisplay();
 		MotionEffect.bHidden = True;
 	}
 }
+
+static function bool IsCloaked(pawn Other)
+{
+	return (Other == None) || (Other.bMeshEnviroMap && (Other.Texture == FireTexture'Unrealshare.Belt_fx.Invis'));
+}
+
+static function bool IsHalfCloaked(pawn Other)
+{
+	return (Other == None) || (Other.bMeshEnviroMap && (Other.Texture == Texture'JDomN0'));
+}
+
 
 function bool ValidWeapon(Weapon Other, optional bool bAltFired)
 {
@@ -151,6 +179,37 @@ function bool ValidWeapon(Weapon Other, optional bool bAltFired)
 		|| (bAltFired && Other.IsA('WFTaser')) )
 		return true;
 	return false;
+}
+
+// send this from WFWeapon
+function WeaponFired(Weapon WeaponUsed)
+{
+	local WFMotionBlurEffect e;
+	if (!bActive)
+		return;
+
+	if (ValidWeapon(pawn(Owner).Weapon, pawn(Owner).bAltFire != 0))
+		return; // ok to use this weapon type while cloaked
+
+	e = spawn(class'WFCloakerShootPulse', Owner,, Owner.Location, Owner.Rotation);
+	e.InitFor(owner);
+
+	Charge = Max(Charge - WeaponCost, 0);
+	//Owner.PlaySound(sound'TDisrupt', SLOT_None, 4.0);
+}
+
+function GrenadeThrown(WFGrenadeItem GrenadeUsed)
+{
+	local WFMotionBlurEffect e;
+
+	if (!bActive)
+		return;
+
+	e = spawn(class'WFCloakerShootPulse', Owner,, Owner.Location, Owner.Rotation);
+	e.InitFor(owner);
+
+	Charge = Max(Charge - GrenadeCost, 0);
+	//Owner.PlaySound(sound'TDisrupt', SLOT_None, 4.0);
 }
 
 auto state DeActivated
@@ -162,14 +221,18 @@ auto state DeActivated
 			Owner.PlaySound(DeActivateSound);
 			if (MyEffect != None)
 				MyEffect.FadeIn();
-			ActivateDelay = 2;
+			if (Charge <= 0) // need extra time if charge was all used up
+				ActivateDelay = 5;
+			else ActivateDelay = 2;
 		}
 		SetTimer(1.0, true);
-		MotionEffect.bHidden = True;
+		if (MotionEffect != None)
+			MotionEffect.bHidden = True;
 	}
 
 	function Tick( float DeltaTime )
 	{
+		bPlayerMoving = bPlayerMoving || (VSize(Owner.Velocity) > 10);
 		if ((MyEffect != None) && !(MyEffect.FadeMode == 1))
 		{
 			if (Owner != None)
@@ -189,7 +252,7 @@ auto state DeActivated
 		if (pawn(Owner).PlayerReplicationInfo.HasFlag != None)
 			return;
 
-		//if ((Charge > 0) && (Charge >= MinChargeToActivate))
+		if ((Charge > 0) && (Charge >= MinChargeToActivate))
 			GotoState('Activated');
 	}
 
@@ -241,16 +304,26 @@ function CreateEffect()
 	}
 }
 
+function Tick(float DeltaTime)
+{
+	super.Tick(DeltaTime);
+	bPlayerMoving = bPlayerMoving || (VSize(Owner.Velocity) > 10);
+}
+
 defaultproperties
 {
 	bActivatable=True
 	bDisplayableInv=True
-	MaxCharge=30
-	Charge=30
+	MaxCharge=100
+	Charge=100
 	RemoteRole=ROLE_DumbProxy
 	PickupViewMesh=LodMesh'Botpack.invis2M'
 	Mesh=LodMesh'Botpack.invis2M'
 	ActivateSound=Sound'UnrealI.Pickups.Invisible'
 	DeActivateSound=Sound'UnrealI.Pickups.Invisible'
 	MinChargeToActivate=5
+	RechargeRate=2
+	bMovementDrainOnly=True
+	WeaponCost=5
+	GrenadeCost=10
 }

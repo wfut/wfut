@@ -2,7 +2,7 @@
 // WFPlayerStatus.
 // Author: Ob1-Kenobi (ob1@planetunreal.com)
 //=============================================================================
-class WFPlayerStatus extends TournamentPickup
+class WFPlayerStatus extends WFPickup
 	abstract;
 
 var() float ScaleFactor; // scaling factor of the effect
@@ -224,8 +224,8 @@ simulated function RegisterStatus()
 	WFPlayerOwner = WFPlayer(Owner);
 	if (WFPlayerOwner == None) return;
 
-	if (bRenderStatus && (WFPlayerOwner.MyHUD != None))
-		WFHUD(WFPlayerOwner.MyHUD).AddRenderedStatus(self);
+	if (bRenderStatus)
+		WFPlayerOwner.AddRenderedStatus(self);
 }
 
 // Unregister this status
@@ -236,12 +236,15 @@ simulated function UnregisterStatus()
 	WFPlayerOwner = WFPlayer(Owner);
 	if (WFPlayerOwner == None) return;
 
-	if (bRenderStatus && (WFPlayerOwner.MyHUD != None))
-		WFHUD(WFPlayerOwner.MyHUD).RemoveRenderedStatus(self);
+	if (bRenderStatus)
+		WFPlayerOwner.RemoveRenderedStatus(self);
 }
 
 // Use this function instead of Tick()
 simulated function StatusTick(float DeltaTime);
+
+// If the status adjusts the players viewrotation in any way, it MUST do it here.
+simulated function AdjustViewRotation(float DeltaTime);
 
 // Called to add a status to the list
 simulated function AddStatus(WFPlayerStatus NewStatus)

@@ -37,10 +37,28 @@ static function bool IsImmuneTo(class<WFPlayerStatus> StatusClass)
 	return false;
 }
 
+static function bool PawnIsImmuneTo(pawn Other, class<WFPlayerStatus> StatusClass)
+{
+	local WFPlayer WFP;
+	local WFBot WFB;
+
+	WFP = WFPlayer(Other);
+	if (WFP != None)
+		return WFP.IsImmuneTo(StatusClass);
+	else
+	{
+		WFB = WFBot(Other);
+		if (WFB != None)
+			return WFB.IsImmuneTo(StatusClass);
+	}
+
+	return false;
+}
+
 static function PlayerTakeDamage(pawn Other, out int Damage, out Pawn instigatedBy,	out vector hitlocation, out vector momentum, out name damageType, out byte bIgnoreDamage)
 {
 	if (Other.IsInState('Frozen') && (Other.FindInventoryType(class'WFStatusFrozen') != None))
-		Damage = 0;
+		Damage *= 0.5;
 
 	if (Other.Level.Game.bTeamGame && (instigatedBy != None) && (instigatedBy != Other)
 		&& TeamGamePlus(Other.Level.Game).IsOnTeam(instigatedBy, Other.PlayerReplicationInfo.Team))
@@ -234,7 +252,7 @@ defaultproperties
 {
 	bAllowFeignDeath=false
 	bNoTranslocator=False
-	ExtendedHUD=class'WFHUDInfo'
+    ExtendedHUD=Class'WFCustomHUDInfo'
 	TranslocatorAmmoUsed=15
 	TranslocatorDelay=0.000000
 	ArmorManagerClass=class'WFArmor'

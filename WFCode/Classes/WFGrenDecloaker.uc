@@ -40,4 +40,6 @@ defaultproperties
 	bSingleGrenade=True
 	CollisionRadius=18.000000
 	CollisionHeight=8.000000
+	ItemName="Decloaker"
+	StatusIcon=Texture'WFMedia.GrenadeDecloaker'
 }

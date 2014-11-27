@@ -56,6 +56,19 @@ var WFRefereeInfo RefInfo; // set by the gameinfo
 var bool bMute; // player cannot send messages
 var int RefViewingTeam;
 
+// flood protection
+var bool bAdminLoginDisabled;
+var float FirstAdminLoginTime;
+var int NumAdminLogins;
+var float FirstRefLoginTime;
+var int NumRefLogins;
+var bool bRefLoginDisabled;
+
+// status rendering chain
+var WFPlayerStatus RenderExclusive, RenderChain;
+
+var bool bSuicided;
+
 replication
 {
 	reliable if (Role == ROLE_Authority)
@@ -72,7 +85,21 @@ replication
 		ClientLoadClassBindings, ClientReceiveEvent;
 
     reliable if (Role < ROLE_Authority)
-        RefLogin, RefLogout, Ref;
+        RefLogin, RefLogout, Ref, DebugInfo;
+}
+
+//=============================================================================
+// DEGBUG.
+//=============================================================================
+
+exec function DebugInfo()
+{
+	ClientMessage("State: "$GetStateName());
+	ClientMessage("Physics: "$GetPropertyText("Physics"));
+	ClientMessage("Collision: "$bCollideWorld$" "$bBlockPlayers$" "$bBlockActors);
+	ClientMessage("PRI Flags: bIsSpectator "$PlayerReplicationInfo.bIsSpectator$", bWaitingPlayer "$PlayerReplicationInfo.bWaitingPlayer);
+	ClientMessage("bFlagTouchDisabled: "$bFlagTouchDisabled);
+	ClientMessage("bHidden: "$bHidden$", Mesh: "$Mesh);
 }
 
 exec function GetState()
@@ -90,6 +117,95 @@ function DLog(coerce string S, optional float delay)
 		Log(S);
 	}
 }
+
+exec function Admin( string CommandLine )
+{
+	if (bAdmin && (InStr(Caps(CommandLine), "GET") != -1) && (InStr(CommandLine, "ADMINPASSWORD") != -1))
+		return; // surely a logged in admin would already know the admin password? :o)
+
+	super.Admin(CommandLine);
+}
+
+//=============================================================================
+// STATUS RENDERING CODE.
+//=============================================================================
+
+simulated function PostRender( canvas Canvas )
+{
+	RenderPlayerStatus(Canvas);
+	super.PostRender(Canvas);
+}
+
+simulated function RenderPlayerStatus(canvas Canvas)
+{
+	if ((RenderExclusive != None) && RenderExclusive.bExclusiveRender)
+	{
+		if (RenderExclusive.bDeleteMe)
+			RenderExclusive = None;
+		else
+		{
+			RenderExclusive.RenderStatus(Canvas);
+			return;
+		}
+	}
+
+	if (RenderChain != None)
+		RenderChain.RenderStatusChain(Canvas);
+}
+
+simulated function AddRenderedStatus(WFPlayerStatus NewStatus)
+{
+	if ((NewStatus.Role == ROLE_Authority) && (Level.NetMode == NM_Client))
+		return;
+
+	if (NewStatus.bExclusiveRender)
+	{
+		if ((RenderExclusive == None) || (RenderExclusive.bDeleteMe)
+			|| (RenderExclusive.RenderPriority < NewStatus.RenderPriority))
+		{
+			RenderExclusive = NewStatus;
+			return;
+		}
+	}
+
+	// add to the render list
+	if (RenderChain == None)
+	{
+		NewStatus.bRegistered = true;
+		RenderChain = NewStatus;
+	}
+	else if (RenderChain.RenderPriority > NewStatus.RenderPriority)
+	{
+		NewStatus.bRegistered = true;
+		NewStatus.NextStatus = RenderChain;
+		RenderChain = NewStatus;
+	}
+	else RenderChain.AddStatus(NewStatus);
+}
+
+simulated function RemoveRenderedStatus(WFPlayerStatus OldStatus)
+{
+	local WFPlayerStatus S;
+
+	if (RenderExclusive == OldStatus)
+	{
+		RenderExclusive = None;
+		OldStatus.bRegistered = false;
+	}
+
+	for (S=RenderChain; S!=None; S=S.NextStatus)
+	{
+		if (S.NextStatus == OldStatus)
+		{
+			S.NextStatus = OldStatus.NextStatus;
+			OldStatus.bRegistered = false;
+		}
+	}
+}
+
+//=============================================================================
+// EVENT CODE.
+//=============================================================================
 
 function ClientReceiveEvent(string EventID, name EventType)
 {
@@ -141,12 +257,14 @@ function ServerProcessEvent(string EventName, name EventType, string CmdType, st
 	switch (caps(CmdType))
 	{
 		case "SAY":
-			// TODO: maybe allow for gloabal auto-message filtering later
-			Say(CmdString);
+			// TODO: maybe allow for global auto-message filtering later
+			if (CmdString != "")
+				Say(CmdString);
 			break;
 
 		case "TEAMSAY":
-			TeamSay(CmdString);
+			if (CmdString != "")
+				TeamSay(CmdString);
 			break;
 	}
 }
@@ -377,6 +495,9 @@ exec function Restore_NumKeys()
 event TeamMessage( PlayerReplicationInfo PRI, coerce string S, name Type, optional bool bBeep  )
 {
 	// TODO: add special handling for referee messages
+	if (S == "")
+		return;
+
 	if (Type == 'RefSay')
 		Type = 'Say';
 	else if (Type == 'RefTeamSay')
@@ -568,7 +689,8 @@ function ChangeTeam( int N )
 	local int OldTeam, OldScore, OldDeaths;
 
 	OldTeam = PlayerReplicationInfo.Team;
-	Level.Game.ChangeTeam(self, N);
+	if (N != PlayerReplicationInfo.Team)
+		Level.Game.ChangeTeam(self, N);
 	if ( Level.Game.bTeamGame && (PlayerReplicationInfo.Team != OldTeam) )
 	{
 		// save old score
@@ -662,8 +784,7 @@ exec function Team(string Team)
 		case "GOLD": TeamNum = 3; break;
 	}
 
-	if (TeamNum != 255)
-		ChangeTeam(TeamNum);
+	ChangeTeam(TeamNum);
 }
 
 exec function SetTeamPassword(coerce string Pwd)
@@ -731,6 +852,16 @@ exec function DropAmmo(optional int Amount)
 //=============================================================================
 // WF Functions
 //=============================================================================
+
+function bool IsImmuneTo(class<WFPlayerStatus> StatusClass)
+{
+	local bool bIsImmune;
+
+	if (class<WFPlayerClassInfo>(PCInfo) != None)
+		bIsImmune = class<WFPlayerClassInfo>(PCInfo).static.IsImmuneTo(StatusClass);
+
+	return bIsImmune || (FindInventoryType(class'WFSpawnProtector') != None);
+}
 
 // set up a root window class that wont load the Mod menu
 function InitMenu(canvas Canvas)
@@ -1010,6 +1141,9 @@ exec function Say( string Msg )
 {
 	local pawn P;
 
+	if (Msg == "")
+		return;
+
 	// forward message to RefInfo for processing
 	if (bReferee)
 	{
@@ -1043,6 +1177,9 @@ exec function Say( string Msg )
 
 exec function TeamSay(string Msg)
 {
+	if (Msg == "")
+		return;
+
 	// forward message to RefInfo for processing
 	if (bReferee)
 	{
@@ -1089,16 +1226,55 @@ event PlayerTimeOut()
     super.PlayerTimeOut();
 }
 
+// get status inventory to adjust view rotation
+function ViewShake(float DeltaTime)
+{
+	local inventory Item;
+	super.ViewShake(deltatime);
+
+	if (PlayerReplicationInfo==None || PlayerReplicationInfo.bIsSpectator || PlayerReplicationInfo.bWaitingPlayer)
+		return;
+
+	for (Item=Inventory; Item!=None; Item=Item.Inventory)
+		if (Item!=None && Item.IsA('WFPlayerStatus'))
+			WFPlayerStatus(Item).AdjustViewRotation(deltatime);
+}
+
+
 //=============================================================================
 // WF Player States
 //=============================================================================
 
-// referee state
-state RefereeMode extends PlayerSpectating
+exec function Suicide()
+{
+	bSuicided = true;
+	super.Suicide();
+}
+
+state Dying
 {
 	function BeginState()
 	{
+		super.BeginState();
+		if (bSuicided)
+		{
+			bSuicided = false;
+			SetTimer(5.0, false);
+			ClientMessage("5 second respawn penalty for suicide command.");
+		}
+	}
+}
+
+
+// referee state
+state RefereeMode extends PlayerSpectating
+{
+	exec function Suicide() { }
+
+	function BeginState()
+	{
 		bJoinedGame = false;
+		bFlagTouchDisabled = true;
 		PlayerReplicationInfo.bIsSpectator = true;
 		PlayerReplicationInfo.bWaitingPlayer = true;
 		//bShowScores = true;
@@ -1133,6 +1309,7 @@ state RefereeMode extends PlayerSpectating
 
 	function EndState()
 	{
+		bFlagTouchDisabled = false;
 		PlayerReplicationInfo.bIsSpectator = false;
 		PlayerReplicationInfo.bWaitingPlayer = false;
 		SetMesh();
@@ -1144,10 +1321,13 @@ state RefereeMode extends PlayerSpectating
 // login spectator state
 state PCSpectating
 {
+	exec function Suicide() { }
+
 	function BeginState()
 	{
 		Mesh = None;
 		bHidden = true;
+		bFlagTouchDisabled = true;
 		if ( PlayerReplicationInfo != None )
 		{
 			PlayerReplicationInfo.bIsSpectator = true;
@@ -1168,6 +1348,7 @@ state PCSpectating
 	function EndState()
 	{
 		bJoinedGame = true;
+		bFlagTouchDisabled = false;
 		CloseGameMenu();
 		super.EndState();
 	}

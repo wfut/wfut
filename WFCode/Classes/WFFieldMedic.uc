@@ -3,6 +3,21 @@
 //=============================================================================
 class WFFieldMedic extends WFPlayerClassInfo;
 
+static function ModifyPlayer(pawn Other)
+{
+	local float SpeedScaling;
+
+	if (DeathMatchPlus(Other.Level.Game).bMegaSpeed)
+		SpeedScaling = 1.4;
+	else SpeedScaling = 1.0;
+
+	Other.GroundSpeed = (Other.default.GroundSpeed * SpeedScaling) * 1.1;
+	Other.WaterSpeed = (Other.default.WaterSpeed * SpeedScaling) * 1.1;
+	Other.AirSpeed = (Other.default.AirSpeed * SpeedScaling) * 1.1;
+	Other.AccelRate = (Other.default.AccelRate * SpeedScaling) * 1.1;
+	Other.Mass = Other.default.Mass * 0.9;
+}
+
 static function bool IsImmuneTo(class<WFPlayerStatus> StatusClass)
 {
 	if ((StatusClass == class'WFStatusInfected') || (StatusClass == class'WFStatusOnFire'))
@@ -94,7 +109,6 @@ defaultproperties
 	ClassNamePlural="Field Medics"
 	Health=100
 	Armor=50
-	ExtendedHUD=class'WFS_CTFHUDInfo'
 	DefaultInventory=class'WFFieldMedicInv'
 	MeshInfo=class'WFD_TFemale1MeshInfo'
 	AltMeshInfo=class'WFD_TFemale1BotMeshInfo'

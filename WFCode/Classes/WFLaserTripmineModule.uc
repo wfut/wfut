@@ -19,16 +19,20 @@ var PlayerReplicationInfo OwnerPRI;
 
 var bool bAlreadyExploded;
 
+var byte CurrentBeamSize, SavedBeamSize;
+
+var float LastBeamCheck, BeamCheckRate;
+
 replication
 {
 	reliable if (Role == ROLE_Authority)
 		RealRotR, RealRotY, RealRotP, RealLocX, RealLocY, RealLocZ, BasedWall;
 	reliable if (Role == ROLE_Authority)
-		/*TeamTexture,*/ bAlreadyDestroyed, /*bActivateAlertSent,*/ bWantsToFlicker;
+		bAlreadyDestroyed, bWantsToFlicker;
 
 	// Ob1: just to be safe, the clientside beam waits for this to be replicated
 	reliable if (Role == ROLE_Authority)
-		OwnerPRI;
+		OwnerPRI, CurrentBeamSize;
 }
 
 
@@ -62,6 +66,13 @@ simulated function Tick(float DeltaTime)
 	if ( OwnerPRI != None && RealLocX != -1 && RealLocY != -1 && RealLocZ != -1 && RealRotY != -1 && RealRotP != -1 && RealRotR != -1 && HeadBeam == None && BasedWall != None )
 	{
 		CreateBeam();
+	}
+
+	// adjust length of beam if necessary
+	if (HeadBeam != None)
+	{
+		CheckBeamSize();
+		AdjustBeamSize();
 	}
 }
 
@@ -267,6 +278,14 @@ simulated function CreateBeam()
 	//log (Self$": Linked Final"@TailBeam$".PrevBeam to "@LastBeam);
 	LastBeam.NextBeam = TailBeam;
 	//log (Self$": Linked Final"@LastBeam$".NextBeam to "@TailBeam);
+
+	// New: 14-09-2001
+	// -- Ob1: added to help with dynamically adjusting beam size
+	if (Role == ROLE_Authority)
+		CurrentBeamSize = BeamCtr + 1; // segment count + head segment
+	SavedBeamSize = BeamCtr + 1; // client side stored value
+	// End: 14-09-2001
+
 	if ( HeadBeam == None || TailBeam == None || !bAtLeastOneBeamAdded )
 	{
 		if ( HeadBeam != None )
@@ -298,6 +317,138 @@ simulated function ReceiveAlert( string AlertType, int Dir, actor Blah)
 }
 
 
+// New: 14-09-2001
+// -- Ob1: added to help with dynamically adjusting beam size
+function CheckBeamSize()
+{
+	local vector HitNorm, HitLoc, Start, End;
+	local actor HitActor;
+	local bool bHitWall;
+
+	// server side length adjustment
+	if ((Level.TimeSeconds - LastBeamCheck) < BeamCheckRate)
+		return;
+
+	LastBeamCheck = Level.TimeSeconds;
+
+	Start = Location;
+	End = BeamSize*vector(rotation)*MaxSegments + Start;
+	foreach TraceActors(class'Actor', HitActor, HitLoc, HitNorm, End, Start)
+	{
+		if ((Brush(HitActor) != None) || (HitActor == Level))
+		{
+			Log("Hit Wall: "$Hitactor);
+			bHitWall = true;
+			break;
+		}
+	}
+
+	if (bHitWall)
+		CurrentBeamSize = int(VSize(HitLoc - Start)/BeamSize);
+	else CurrentBeamSize = MaxSegments;
+
+	if (CurrentBeamSize == 2)
+	{
+		// module's beam is too small
+		CurrentBeamSize = 0;
+		Disable('Tick');
+		spawn(class'EnhancedRespawn', self,, Location);
+		Destroy();
+	}
+}
+
+simulated function AdjustBeamSize()
+{
+	local int Num;
+	local WFLaserTripmineBeam ThisBeam, LastBeam;
+	local WFLaserTripmineBeamTail Tail;
+	local vector BeamLoc, Offset;
+	local rotator BeamRot;
+	local bool bBeamActive;
+
+	if (CurrentBeamSize == 0)
+		return; // authoritive beam size not yet reached the client
+
+	if (bDeleteMe)
+	{
+		Disable('Tick');
+		return;
+	}
+
+	// deal with adjusting the beam length
+	if (SavedBeamSize != CurrentBeamSize)
+	{
+		// update size of beam
+		Num = CurrentBeamSize - SavedBeamSize;
+		//Log("AdjustBeamSize(): Num: "$Num);
+		bBeamActive = HeadBeam.bActive;
+		if (Num > 0)
+		{
+			// add Num segments
+			Tail = TailBeam;
+			LastBeam = TailBeam.PrevBeam;
+			Offset = vector(Rotation)*BeamSize;
+			BeamLoc = LastBeam.Location + Offset;
+			while (Num > 0)
+			{
+				//Log("AdjustBeamSize(): Creating new segment at: "$BeamLoc);
+				ThisBeam = spawn(class'WFLaserTripmineBeam', Self,, BeamLoc, Rotation);
+				if (bBeamActive)
+					ThisBeam.ProcessAlert("activate", self);
+				ThisBeam.OwnerPRI = OwnerPRI;
+				LastBeam.NextBeam = ThisBeam;
+				ThisBeam.PrevBeam = LastBeam;
+				LastBeam = ThisBeam;
+				BeamLoc += Offset;
+				Num--;
+			}
+			ThisBeam.NextBeam = TailBeam;
+			TailBeam.PrevBeam = ThisBeam;
+			// re-create tail cap effect if necessary
+			if (TailBeam.TailFX != None)
+			{
+				TailBeam.TailFX.Destroy();
+				TailBeam.TailFX = None;
+			}
+			TailBeam.SetLocation(BeamLoc);
+			if (CurrentBeamSize == MaxSegments)
+				TailBeam.AddTail( BeamLoc + Offset, Rotation );
+		}
+		else if (Num < 0)
+		{
+			// remove Num segments
+			ThisBeam = TailBeam.PrevBeam;
+			while (Num < 0)
+			{
+				//Log("AdjustBeamSize(): Removing segment: "$ThisBeam);
+				LastBeam = ThisBeam;
+				ThisBeam = ThisBeam.PrevBeam;
+				if (LastBeam != HeadBeam)
+					LastBeam.Destroy();
+				else Log("WARNING: attempted to destroy head beam!");
+				Num++;
+			}
+			BeamLoc = ThisBeam.Location + vector(rotation)*BeamSize;
+			ThisBeam.NextBeam = TailBeam;
+			TailBeam.PrevBeam = ThisBeam;
+			// remove tail cap effect, since its obviously not max length now
+			if (TailBeam.TailFX != None)
+			{
+				TailBeam.TailFX.Destroy();
+				TailBeam.TailFX = None;
+			}
+			TailBeam.SetLocation(BeamLoc);
+		}
+	}
+
+	SavedBeamSize = CurrentBeamSize;
+}
+
+event FellOutOfWorld()
+{
+}
+// End: 14-09-2001
+
 defaultproperties
 {
      BeamSize=24.3
@@ -323,7 +474,7 @@ defaultproperties
      SoundRadius=20
      SoundVolume=100
      CollisionRadius=2
-     CollisionHeight=5
+     CollisionHeight=2
      bProjTarget=True
      bBounce=True
      Mass=50.000000
@@ -333,4 +484,5 @@ defaultproperties
 	 RealRotY=-1
 	 RealRotP=-1
 	 RealRotR=-1
+     BeamCheckRate=0.125000
 }

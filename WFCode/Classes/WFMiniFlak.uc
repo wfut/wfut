@@ -110,6 +110,7 @@ function Fire( float Value )
 	}
 	if (AmmoType.UseAmmo(1))
 	{
+		NotifyFired();
 		bCanClientFire = true;
 		bPointing=True;
 		Start = Owner.Location + CalcDrawOffset();
@@ -165,6 +166,7 @@ function AltFire( float Value )
 	}
 	if (AmmoType.UseAmmo(1))
 	{
+		NotifyFired();
 		Pawn(Owner).PlayRecoil(FiringSpeed);
 		bPointing=True;
 		bCanClientFire = true;
@@ -390,7 +392,7 @@ defaultproperties
      BobDamping=0.972000
      PickupViewMesh=LodMesh'Botpack.Flak2Pick'
      ThirdPersonMesh=LodMesh'Botpack.FlakHand'
-     StatusIcon=Texture'Botpack.Icons.UseFlak'
+     StatusIcon=Texture'WFMedia.WeaponMiniFlak'
      bMuzzleFlashParticles=True
      MuzzleFlashStyle=STY_Translucent
      MuzzleFlashMesh=LodMesh'Botpack.muzzFF3'

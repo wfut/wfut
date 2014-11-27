@@ -81,7 +81,7 @@ defaultproperties
      BobDamping=0.975000
      PickupViewMesh=LodMesh'Botpack.WHPick'
      ThirdPersonMesh=LodMesh'Botpack.WHHand'
-     StatusIcon=Texture'Botpack.Icons.UseWarH'
+     StatusIcon=Texture'WFMedia.WeaponSentryKiller'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.UseWarH'
      Mesh=LodMesh'Botpack.WHPick'

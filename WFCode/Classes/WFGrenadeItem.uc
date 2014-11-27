@@ -26,20 +26,13 @@ function actor ThrowGrenade()
 	VelocityScale = Max(1.0, ThrowingTime);
 	InitialVelocity = (FMin(BaseVelocity * VelocityScale, MaximumVelocity) * Normal(dir)) + Owner.Velocity*0.5;
 
-	// remove any disguise and cloak the player has
-	// TODO: hrm, convert this to an inventory notification rather than hard code it here
-	if (class'WFDisguise'.static.IsDisguised(pawn(Owner).PlayerReplicationInfo))
+	// notify any WFPickups that a grenade was thrown
+	for (Item=pawn(Owner).Inventory; Item!=None; Item=Item.Inventory)
 	{
-		for (Item=pawn(Owner).Inventory; Item!=None; Item=Item.Inventory)
-		{
-			if ((Item != None) && Item.IsA('WFDisguise'))
-				WFDisguise(Item).RemoveDisguise();
-			if ((Item != None) && Item.IsA('WFCloaker') && Item.IsInState('Active'))
-			{
-				WFCloaker(Item).ActivateDelay = 0;
-				WFCloaker(Item).Activate();
-			}
-		}
+		if ((Item != None) && Item.IsA('WFPickup'))
+			WFPickup(Item).GrenadeThrown(self);
+		//if ((Item != None) && Item.IsA('WFCloaker') && Item.IsInState('Active'))
+		//	WFCloaker(Item).GrenadeThrown(self);
 	}
 
 	return DropProjectile(InitialVelocity);

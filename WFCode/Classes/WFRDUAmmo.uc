@@ -27,9 +27,8 @@ Begin:
 
 defaultproperties
 {
-	AmmoAmount=50
-	MaxAmmo=50
-	RechargeDelay=1
-	RechargeRate=5
+	AmmoAmount=35
+	MaxAmmo=35
+	RechargeDelay=2
 	bRecharge=True
 }

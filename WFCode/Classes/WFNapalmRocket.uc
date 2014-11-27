@@ -13,6 +13,7 @@ auto state Flying
 		local WFStatusOnFire s;
 		local bool bGiveStatus;
 		local class<WFPlayerClassInfo> PCI;
+		local WFPlayer WFP;
 
 		if( bHurtEntry )
 			return;
@@ -43,8 +44,10 @@ auto state Flying
 					aPawn = pawn(Victims);
 					if (aPawn.bIsPlayer && (aPawn.Health > 0))
 					{
-						PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(aPawn));
-						bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusOnFire');
+						//WFP = WFPlayer(aPawn);
+						//PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(aPawn));
+						//bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusOnFire');
+						bGiveStatus = !class'WFPlayerClassInfo'.static.PawnIsImmuneTo(aPawn, class'WFStatusOnFire');
 
 						if (bGiveStatus && (aPawn.PlayerReplicationInfo.Team != Instigator.PlayerReplicationInfo.Team))
 						{

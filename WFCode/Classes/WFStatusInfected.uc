@@ -98,8 +98,7 @@ function InfectPlayer(pawn Other)
 		return;
 
 	// don't infect players that are immune to this status type
-	PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
-	if ((PCI != None) && PCI.static.IsImmuneTo(Class))
+	if (class'WFPlayerClassInfo'.static.PawnIsImmuneTo(Other, Class))
 		return;
 
 	// don't infect players that already have it
@@ -130,7 +129,7 @@ defaultproperties
 {
 	PickupMessage="You have been infected!"
 	ExpireMessage="The infection has worn off."
-	InfectionTime=80.000000
+	InfectionTime=30.000000
 	DamageTime=2
 	DamageAmount=5
 	RandInfectTime=12

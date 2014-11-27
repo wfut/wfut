@@ -109,6 +109,7 @@ function AltFire( float Value )
 
 	if ((GetStateName() == 'AltFiring') || AmmoType.UseAmmo(1))
 	{
+		NotifyFired();
 		GotoState ('AltFiring');
 		bPointing=True;
 		bCanClientFire = true;
@@ -258,7 +259,7 @@ defaultproperties
      BobDamping=0.972000
      PickupViewMesh=LodMesh'Botpack.BRifle2Pick'
      ThirdPersonMesh=LodMesh'Botpack.BRifle23'
-     StatusIcon=Texture'Botpack.Icons.UseBio'
+     StatusIcon=Texture'WFMedia.WeaponBioGun'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.UseBio'
      Mesh=LodMesh'Botpack.BRifle2Pick'

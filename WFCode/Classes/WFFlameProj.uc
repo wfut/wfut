@@ -1,6 +1,7 @@
 class WFFlameProj expands WFAnimatedProj;
 
 var float FinalDrawScale;
+var float FadeCoef;
 
 function PostBeginPlay()
 {
@@ -35,6 +36,9 @@ simulated function ZoneChange(zoneinfo NewZone)
 simulated function Tick(float DeltaTime)
 {
 	DrawScale = default.DrawScale + ( (FinalDrawScale - default.DrawScale)*(1.0 - (LifeSpan/default.LifeSpan)) );
+	if (LifeSpan > FadeCoef*default.LifeSpan)
+		ScaleGlow = default.ScaleGlow;
+	else ScaleGlow = default.ScaleGlow*(LifeSpan/(FadeCoef*default.LifeSpan));
 	super.Tick(DeltaTime);
 }
 
@@ -50,7 +54,8 @@ auto state Flying
 		local bool bGiveStatus;
 		local class<WFPlayerClassInfo> PCI;
 
-		if ((Level.NetMode == NM_Client) || (Role != ROLE_Authority) || (Other == Instigator))
+		if ((Level.NetMode == NM_Client) || (Role != ROLE_Authority) || (Other == Instigator)
+			|| (damage <= 0))
 			return;
 
 		Other.TakeDamage(Damage, Instigator, HitLocation, vect(0,0,0), 'OnFireStatus');
@@ -61,8 +66,10 @@ auto state Flying
 			If ( Other!=Instigator && WFFlameProj(Other)==None && aPawn != None )
 				if (aPawn.bIsPlayer && (aPawn.Health > 0))
 				{
-					PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(aPawn));
-					bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusOnFire');
+					//WFP = WFPlayer(aPawn);
+					//PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(aPawn));
+					//bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusOnFire');
+					bGiveStatus = !class'WFPlayerClassInfo'.static.PawnIsImmuneTo(aPawn, class'WFStatusOnFire');
 
 					if (bGiveStatus && (aPawn.PlayerReplicationInfo.Team != Instigator.PlayerReplicationInfo.Team))
 					{
@@ -89,6 +96,7 @@ defaultproperties
 {
 	//Speed=325
 	FinalDrawScale=1.0
+	FadeCoef=0.330000
 	DrawScale=0.25
 	Damage=3
 	//Speed=450

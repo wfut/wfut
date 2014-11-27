@@ -5,8 +5,9 @@ class WFMotionBlurEffect extends Effects;
 
 var() float FadeScale;	// the larger the value, the shorter the effect lasts
 var() float FinalScaleGlow;
+var() sound SpawnEffectSound;
 
-function PostBeginPlay()
+simulated function PostBeginPlay()
 {
 	Enable('Tick');
 }

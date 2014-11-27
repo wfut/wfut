@@ -63,6 +63,7 @@ function AltFire( float Value )
 	}
 	if ( AmmoType.UseAmmo(1) )
 	{
+		NotifyFired();
 		GoToState('AltFiring');
 		bCanClientFire = true;
 		ClientAltFire(Value);
@@ -292,7 +293,7 @@ function ProcessTraceActor(Actor Other, Vector HitLocation, Vector HitNormal, Ve
 		PlayerOwner.ClientInstantFlash( -0.4, vect(450, 190, 650));
 
 	if ( (Other != self) && (Other != Owner) && (Other != None) )
-		Other.TakeDamage(RailBeamDamage*FClamp(ChargeSize/4.0, 0.25, 1.0), Pawn(Owner), HitLocation, (60000.0+40000.0*(ChargeSize/4.1))*X, MyDamageType);
+		Other.TakeDamage(RailBeamDamage*FClamp(ChargeSize/4.0, 0.25, 1.0), Pawn(Owner), HitLocation, (60000.0+40000.0*(ChargeSize/4.1))*X, AltDamageType);
 }
 
 function SpawnEffect(vector HitLocation, vector SmokeLocation)
@@ -417,10 +418,12 @@ defaultproperties
      BobDamping=0.94500
      PickupViewMesh=LodMesh'Botpack.BRifle2Pick'
      ThirdPersonMesh=LodMesh'WFMedia.railthird'
-     StatusIcon=Texture'Botpack.Icons.UseBio'
+     StatusIcon=Texture'WFMedia.WeaponRailGun'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.UseBio'
      Mesh=LodMesh'WFMedia.railthird'
      bNoSmooth=False
      CollisionHeight=19.000000
+     MyDamageType=RailSlug
+     AltDamageType=Railed
 }

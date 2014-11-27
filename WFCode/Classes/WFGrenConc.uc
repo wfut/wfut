@@ -14,6 +14,7 @@ defaultproperties
 	PickupMessage="You picked up a Concussion Grenade"
 	ItemName="Concussion Grenade"
 	PickupViewMesh=LodMesh'UnrealShare.VoiceBoxMesh'
+	StatusIcon=Texture'WFMedia.GrenadeConc'
 	PickupSound=Sound'UnrealShare.Pickups.GenPickSnd'
 	Icon=Texture'UnrealI.Icons.I_SludgeAmmo'
 	CollisionRadius=18.000000

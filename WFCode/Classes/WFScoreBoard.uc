@@ -7,6 +7,36 @@
 //=============================================================================
 class WFScoreBoard extends UnrealCTFScoreBoard;
 
+function DrawHeader( canvas Canvas )
+{
+  local GameReplicationInfo GRI;
+  local float XL, YL;
+  local font CanvasFont;
+
+  Canvas.DrawColor = WhiteColor;
+  GRI = PlayerPawn(Owner).GameReplicationInfo;
+
+  Canvas.Font = Canvas.LargeFont;
+
+  Canvas.bCenter = True;
+  Canvas.StrLen("Test", XL, YL);
+  ScoreStart = 58.0/768.0 * Canvas.ClipY;
+  CanvasFont = Canvas.Font;
+  if ( GRI.GameEndedComments != "" )
+  {
+    Canvas.DrawColor = GoldColor;
+    Canvas.SetPos(0, ScoreStart);
+    Canvas.DrawText(GRI.GameEndedComments, True);
+  }
+  else
+  {
+    Canvas.SetPos(0, ScoreStart);
+    DrawVictoryConditions(Canvas);
+  }
+  Canvas.bCenter = False;
+  Canvas.Font = CanvasFont;
+}
+
 function ShowScores( canvas Canvas )
 {
 	local PlayerReplicationInfo PRI;

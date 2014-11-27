@@ -1,5 +1,7 @@
 class WFMutator extends DMMutator;
 
+var bool bRegistered;
+
 function bool AlwaysKeep(Actor Other)
 {
 	local bool bTemp;
@@ -38,3 +40,45 @@ function CreateInventoryMarkerFor(inventory Item)
 		}
 	}
 }
+
+function Tick(float DeltaTime)
+{
+	if (!bRegistered)
+	{
+		Level.Game.RegisterMessageMutator(self);
+		bRegistered = True;
+		Disable('Tick');
+	}
+}
+
+// catch and filter mesage broadcasts
+function bool MutatorBroadcastLocalizedMessage( Actor Sender, Pawn Receiver, out class<LocalMessage> Message, out optional int Switch, out optional PlayerReplicationInfo RelatedPRI_1, out optional PlayerReplicationInfo RelatedPRI_2, out optional Object OptionalObject )
+{
+	local actor theOwner;
+
+	for (theOwner=Sender; theOwner!=None; theOwner=theOwner.Owner)
+		if (theOwner.IsA('PlayerPawn') && (NetConnection(playerpawn(theOwner).Player)!=None))
+			return false; // quietly filter out the attempt
+
+	if ( NextMessageMutator != None )
+		return NextMessageMutator.MutatorBroadcastLocalizedMessage( Sender, Receiver, Message, Switch, RelatedPRI_1, RelatedPRI_2, OptionalObject );
+	else
+		return true;
+}
+
+function bool MutatorBroadcastMessage( Actor Sender, Pawn Receiver, out coerce string Msg, optional bool bBeep, out optional name Type )
+{
+	local actor theOwner;
+	local string IP;
+	local int j;
+
+	for (theOwner=Sender; theOwner!=None; theOwner=theOwner.Owner)
+		if (theOwner.IsA('PlayerPawn') && (NetConnection(playerpawn(theOwner).Player)!=None))
+			return false; // quietly filter out the message
+
+	if ( NextMessageMutator != None )
+		return NextMessageMutator.MutatorBroadcastMessage( Sender, Receiver, Msg, bBeep, Type );
+	else
+		return true;
+}
+

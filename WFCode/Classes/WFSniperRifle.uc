@@ -208,7 +208,7 @@ function GiveLegshot(pawn Other)
 		return;
 
 	PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(Other));
-	bGiveStatus = (PCI == None) || !PCI.static.IsImmuneTo(class'WFStatusLegDamage');
+	bGiveStatus = !class'WFPlayerClassInfo'.static.PawnIsImmuneTo(Other, class'WFStatusLegDamage');
 	if (bGiveStatus)
 	{
 		s = WFStatusLegDamage(Other.FindInventoryType(class'WFStatusLegDamage'));
@@ -319,6 +319,8 @@ state Zooming
 
 	simulated function BeginState()
 	{
+		if (Role == ROLE_Authority)
+			Owner.bAlwaysRelevant = true;
 		if ( Owner.IsA('PlayerPawn') )
 		{
 			if ( PlayerPawn(Owner).Player.IsA('ViewPort') )
@@ -332,6 +334,12 @@ state Zooming
 			Global.Fire(0);
 		}
 	}
+
+	function EndState()
+	{
+		if (Role == ROLE_Authority)
+			Owner.bAlwaysRelevant = false;
+	}
 }
 
 ///////////////////////////////////////////////////////////
@@ -339,6 +347,12 @@ simulated function PlayIdleAnim()
 {
 	if ( Mesh != PickupViewMesh )
 		PlayAnim('Still',1.0, 0.05);
+}
+
+function Destroyed()
+{
+	Owner.bAlwaysRelevant = false;
+	super.Destroyed();
 }
 
 defaultproperties
@@ -355,7 +369,7 @@ defaultproperties
      bAltInstantHit=True
      FiringSpeed=1.800000
      FireOffset=(Y=-5.000000,Z=-2.000000)
-     MyDamageType=shot
+     MyDamageType=RifleShot
      AltDamageType=Decapitated
      shakemag=400.000000
      shaketime=0.150000
@@ -385,7 +399,7 @@ defaultproperties
      BobDamping=0.975000
      PickupViewMesh=LodMesh'Botpack.RiflePick'
      ThirdPersonMesh=LodMesh'Botpack.RifleHand'
-     StatusIcon=Texture'Botpack.Icons.UseRifle'
+     StatusIcon=Texture'WFMedia.WeaponSniperRifle'
      bMuzzleFlashParticles=True
      MuzzleFlashStyle=STY_Translucent
      MuzzleFlashMesh=LodMesh'Botpack.muzzsr3'

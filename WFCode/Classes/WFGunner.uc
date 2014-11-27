@@ -7,12 +7,12 @@ var int MaxTripmines;
 
 static function ModifyPlayer(pawn Other)
 {
-	Other.GroundSpeed = Other.default.GroundSpeed * 0.75;
-	Other.WaterSpeed = Other.default.WaterSpeed * 0.75;
-	Other.AirSpeed = Other.default.AirSpeed * 0.75;
-	Other.AccelRate = Other.default.AccelRate * 0.75;
-	Other.AirControl = Other.default.AirControl * 0.75;
-	Other.Mass = Other.default.Mass * 1.25;
+	Other.GroundSpeed = Other.default.GroundSpeed * 0.85;
+	Other.WaterSpeed = Other.default.WaterSpeed * 0.85;
+	Other.AirSpeed = Other.default.AirSpeed * 0.85;
+	Other.AccelRate = Other.default.AccelRate * 0.85;
+	Other.AirControl = Other.default.AirControl * 0.85;
+	Other.Mass = Other.default.Mass * 1.15;
 }
 
 static function bool IsClientSideCommand(string SpecialString)
@@ -37,11 +37,11 @@ static function DoSpecial(pawn Other, string SpecialString, optional name Type)
 		SetTripmine(Other);
 	else if (SpecialString ~= "RemoveMine")
 		RemoveTripmine(Other);
-	else if (SpecialString ~= "RemoveDecloaker")
+	/*else if (SpecialString ~= "RemoveDecloaker")
 	{
 		if (!RemoveDecloakers(Other))
 			Other.ClientMessage("No Decloakers to remove");
-	}
+	}*/
 }
 
 
@@ -179,7 +179,7 @@ defaultproperties
 	MeshInfo=class'WFD_TFemale2MeshInfo'
 	AltMeshInfo=class'WFD_TFemale2BotMeshInfo'
 	ClassDescription="WFCode.WFClassHelpGunner"
-	TranslocatorAmmoUsed=35
+	TranslocatorAmmoUsed=25
 	HUDMenu=class'WFGunnerHUDMenu'
 	ClassSkinName="WFSkins.gunn"
 	ClassFaceName="WFSkins.lana"

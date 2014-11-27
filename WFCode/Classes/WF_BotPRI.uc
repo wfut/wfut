@@ -21,10 +21,12 @@ const PS_Disguised	= 128;	// the player is currently disguised
 var int StatusFlags; // the bots current status
 var string ClassName; // string name of player class
 
+var int MiscScoreArray[8]; // miscellaneous scoring vars
+
 replication
 {
 	reliable if (Role == ROLE_Authority)
-		StatusFlags, ClassName;
+		StatusFlags, ClassName, MiscScoreArray;
 }
 
 defaultproperties

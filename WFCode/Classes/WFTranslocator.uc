@@ -210,4 +210,5 @@ defaultproperties
 	OverHeatTime=10.000000
 	MaxTL=5
 	MessageDelay=1.0
+	StatusIcon=Texture'WFMedia.WeaponTranslocator'
 }

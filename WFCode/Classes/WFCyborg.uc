@@ -195,7 +195,7 @@ defaultproperties
 	ClassDescription="WFCode.WFClassHelpCyborg"
 	bNoEnforcer=True
 	//bNoTranslocator=True
-	TranslocatorAmmoUsed=15
+	TranslocatorAmmoUsed=25
 	HUDMenu=class'WFCyborgHUDMenu'
 	ClassSkinName="WFSkins.borg"
 	ClassFaceName="WFSkins.petey"

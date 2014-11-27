@@ -41,7 +41,9 @@ function Touch( actor Other )
 	}
 	if ( bActive && (Other != None) && Other.bIsPawn && !IsCloaked(pawn(Other)) && (Pawn(Other).PlayerReplicationInfo != None)) // Other.bIsPawn covers (WFLaserTripmine(Owner) == None)
 	{
-		if (!class'WFDisguise'.static.IsDisguised(pawn(Other).PlayerReplicationInfo) && (OwnerPRI.Team != pawn(Other).PlayerReplicationInfo.Team))
+		//if (!class'WFDisguise'.static.IsDisguised(pawn(Other).PlayerReplicationInfo) && (OwnerPRI.Team != pawn(Other).PlayerReplicationInfo.Team))
+		if ( (IsHalfCloaked(pawn(Other)) || !class'WFDisguise'.static.IsDisguised(pawn(Other).PlayerReplicationInfo))
+			&& (OwnerPRI.Team != pawn(Other).PlayerReplicationInfo.Team))
 		{
 			bWaitForNextTickToSendDestroy = true;
 			PendingOther = Other;
@@ -65,7 +67,12 @@ function Touch( actor Other )
 // returns true if player is cloaked
 function bool IsCloaked(pawn Other)
 {
-	return (Other.bMeshEnviroMap && (Other.Texture == FireTexture'Unrealshare.Belt_fx.Invis'));
+	return (Other == None) || (Other.bMeshEnviroMap && (Other.Texture == FireTexture'Unrealshare.Belt_fx.Invis'));
+}
+
+function bool IsHalfCloaked(pawn Other)
+{
+	return (Other == None) || (Other.bMeshEnviroMap && (Other.Texture == Texture'JDomN0'));
 }
 
 simulated function DoCleanUp()

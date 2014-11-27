@@ -6,9 +6,7 @@
 class WFHUD extends WFS_PCSystemHUD;
 
 // local references to rendered status (ensures reliable rendering)
-var WFPlayerStatus RenderList[16], Exclusive, RenderChain;
 var string TeamColorStr[4];
-var int StatusCount;
 
 var localized string IdentifyArmor;
 
@@ -23,81 +21,12 @@ var float HintSlideTime; // time taken for hints to slide on-screen
 
 var config bool bShowConsoleHints;
 
-simulated function PostRender(canvas Canvas)
+var float lastdebuglog;
+
+simulated function DebugLog(coerce string S, float MinDelay)
 {
-	RenderPlayerStatus(Canvas);
-	super.PostRender(Canvas);
-}
-
-simulated function RenderPlayerStatus(canvas Canvas)
-{
-	local int i;
-
-	if (PawnOwner == None)
-		return;
-
-	if ((Exclusive != None) && Exclusive.bExclusiveRender)
-	{
-		if (Exclusive.bDeleteMe)
-			Exclusive = None;
-		else
-		{
-			Exclusive.RenderStatus(Canvas);
-			return;
-		}
-	}
-
-	if (RenderChain != None)
-		RenderChain.RenderStatusChain(Canvas);
-}
-
-simulated function AddRenderedStatus(WFPlayerStatus NewStatus)
-{
-	local int i;
-
-	if (NewStatus.bExclusiveRender)
-	{
-		if ((Exclusive == None) || (Exclusive.bDeleteMe)
-			|| (Exclusive.RenderPriority < NewStatus.RenderPriority))
-		{
-			Exclusive = NewStatus;
-			return;
-		}
-	}
-
-	// add to the render list
-	if (RenderChain == None)
-	{
-		NewStatus.bRegistered = true;
-		RenderChain = NewStatus;
-	}
-	else if (RenderChain.RenderPriority > NewStatus.RenderPriority)
-	{
-		NewStatus.bRegistered = true;
-		NewStatus.NextStatus = RenderChain;
-		RenderChain = NewStatus;
-	}
-	else RenderChain.AddStatus(NewStatus);
-}
-
-simulated function RemoveRenderedStatus(WFPlayerStatus OldStatus)
-{
-	local WFPlayerStatus S;
-
-	if (Exclusive == OldStatus)
-	{
-		Exclusive = None;
-		OldStatus.bRegistered = false;
-	}
-
-	for (S=RenderChain; S!=None; S=S.NextStatus)
-	{
-		if (S.NextStatus == OldStatus)
-		{
-			S.NextStatus = OldStatus.NextStatus;
-			OldStatus.bRegistered = false;
-		}
-	}
+	if ((Level.TimeSeconds - lastdebuglog) > MinDelay)
+		Log(S);
 }
 
 // Uses WFTeamSayMessagePlus message class to fix a spacing bug with team messages.
@@ -178,6 +107,7 @@ simulated function bool TraceIdentify(canvas Canvas)
 	local actor Other;
 	local vector HitLocation, HitNormal, StartTrace, EndTrace;
 	local class<WFPlayerClassInfo> PCI;
+	local string IDName;
 
 	StartTrace = PawnOwner.Location;
 	StartTrace.Z += PawnOwner.BaseEyeHeight;
@@ -187,7 +117,8 @@ simulated function bool TraceIdentify(canvas Canvas)
 	if ( Pawn(Other) != None )
 	{
 		PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(pawn(Other)));
-		if ( Pawn(Other).bIsPlayer && !Other.bHidden && ((PCI == None) || (PCI.default.bCanIdentify)) )
+		if ( Pawn(Other).bIsPlayer && !Other.bHidden && ((PCI == None) || (PCI.default.bCanIdentify))
+			&& !IsCloaked(pawn(Other)))
 		{
 			IdentifyTarget = Pawn(Other).PlayerReplicationInfo;
 			IdentifyFadeTime = 3.0;
@@ -202,6 +133,11 @@ simulated function bool TraceIdentify(canvas Canvas)
 	return true;
 }
 
+simulated function bool IsCloaked(pawn Other)
+{
+	return (Other != None) && (Other.Texture == FireTexture'Unrealshare.Belt_fx.Invis') && (Other.Style == STY_Translucent);
+}
+
 simulated function bool DrawIdentifyInfo(canvas Canvas)
 {
 	local float XL, YL, XOffset, X1;
@@ -209,6 +145,9 @@ simulated function bool DrawIdentifyInfo(canvas Canvas)
 	local byte bDisableFunction;
 	local bool Result;
 	local class<WFPlayerClassInfo> PCI;
+	local string IDName;
+	local bool bTargetDisguised;
+	local int pHealth;
 
 	if (ExtendedHUD != none)
 	{
@@ -217,23 +156,136 @@ simulated function bool DrawIdentifyInfo(canvas Canvas)
 			return Result;
 	}
 
-	if ( !Super(ChallengeHUD).DrawIdentifyInfo(Canvas) )
+	//if ( !Super(ChallengeHUD).DrawIdentifyInfo(Canvas) )
+	//	return false;
+
+	if ( !TraceIdentify(Canvas))
 		return false;
+
+	bTargetDisguised = class'WFDisguise'.static.IsDisguised(IdentifyTarget);
+	if( IdentifyTarget.PlayerName != "" )
+	{
+		Canvas.Font = MyFonts.GetBigFont(Canvas.ClipX);
+		IDName = IdentifyTarget.PlayerName;
+		if (bTargetDisguised && (IdentifyTarget.Team != PawnOwner.PlayerReplicationInfo.Team))
+			IDName = GetDisguisedNameFor(IdentifyTarget);
+		DrawTwoColorID(Canvas,IdentifyName, IDName, Canvas.ClipY - 256 * Scale);
+	}
 
 	PCI = class<WFPlayerClassInfo>(class'WFS_PlayerClassInfo'.static.GetPCIFor(PlayerOwner));
 	Canvas.StrLen("TEST", XL, YL);
-	if( PawnOwner.PlayerReplicationInfo.Team == IdentifyTarget.Team )
+	if( bTargetDisguised || (PawnOwner.PlayerReplicationInfo.Team == IdentifyTarget.Team) )
 	{
 		P = Pawn(IdentifyTarget.Owner);
 		Canvas.Font = MyFonts.GetSmallFont(Canvas.ClipX);
 		if ( P != None )
 		{
+			pHealth = P.Health;
+			if (bTargetDisguised && (PCI != None))
+				pHealth = PCI.default.Health;
 			if ((PCI != None) && PCI.default.bDisplayArmorID)
 				DrawIDStatus(Canvas, p, (Canvas.ClipY - 256 * Scale) + 1.5 * YL);
-			else DrawTwoColorID(Canvas,IdentifyHealth,string(P.Health), (Canvas.ClipY - 256 * Scale) + 1.5 * YL);
+			else DrawTwoColorID(Canvas,IdentifyHealth,string(pHealth), (Canvas.ClipY - 256 * Scale) + 1.5 * YL);
 		}
 	}
 	return true;
+}
+
+// TODO - fix for more than 2 teams
+
+simulated function string GetClassName(PlayerReplicationInfo Other)
+{
+	local WF_PRI WFPRI;
+	local WF_BotPRI WFBotPRI;
+
+	WFPRI = WF_PRI(Other);
+	if (WFPRI != None)
+		return WFPRI.ClassName;
+	else
+	{
+		WFBotPRI = WF_BotPRI(Other);
+		if (WFBotPRI != None)
+			return WFBotPRI.ClassName;
+	}
+
+	return "";
+}
+
+simulated function string GetDisguisedNameFor(PlayerReplicationInfo PRI)
+{
+	local string ClassName, AltName;
+	local class<WFS_PlayerClassInfo> PCI;
+	local int i, j, index;
+	local WFGameGRI GRI;
+
+	if (PRI == None)
+		return "";
+
+	GRI = WFGameGRI(PlayerOwner.GameReplicationInfo);
+	if (GRI == None)
+		return "";
+
+	ClassName = GetClassName(PRI);
+	for (i=0; i<GRI.MaxTeams; i++)
+	{
+		if ((i != PRI.Team) && (GRI.TeamClassList[i] != None))
+		{
+			PCI = GRI.TeamClassList[i].GetClassByClassName(ClassName);
+			if (PCI != None)
+			{
+				index = GRI.TeamClassList[i].GetIndexOfClass(PCI);
+				if ((index != -1) && (GRI.TeamClassList[i].PlayerCounts[index] > 0))
+				{
+					// found maching class, get the first name associated with the class name
+					for (j=0; j<32; j++)
+					{
+						if ( (GRI.PRIArray[j] != None) && (GRI.PRIArray[j] != PRI)
+							&& (GRI.PRIArray[j].Team != PRI.Team)
+							&& (GRI.PRIArray[j] != PlayerOwner.PlayerReplicationInfo) )
+						{
+							if (AltName == "") // save first own teams player name as backup
+								AltName = GRI.PRIArray[j].PlayerName;
+							if ( !class'WFDisguise'.static.IsDisguised(GRI.PRIArray[j])
+								&& (GetClassName(GRI.PRIArray[j]) ~= ClassName) )
+								return GRI.PRIArray[j].PlayerName;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// couldn't find player matching class
+	if (AltName == "") // no other names found
+		AltName = PRI.PlayerName;
+	return AltName;
+}
+
+simulated function class<WFS_PlayerClassInfo> GetDisguisedPCI(playerreplicationinfo PRI)
+{
+	local int i;
+	local WFGameGRI GRI;
+	local string ClassName;
+	local class<WFS_PlayerClassInfo> PCI;
+
+	if (PRI == None)
+		return None;
+
+	GRI = WFGameGRI(PlayerOwner.GameReplicationInfo);
+	if (GRI == None)
+		return None;
+
+	ClassName = GetClassName(PRI);
+	for (i=0; i<GRI.MaxTeams; i++)
+	{
+		if ((GRI.TeamClassList[i] != None))
+		{
+			PCI = GRI.TeamClassList[i].GetClassByClassName(ClassName);
+			if (PCI != None) return PCI;
+		}
+	}
+
+	return None;
 }
 
 // draw health and armor
@@ -243,12 +295,28 @@ simulated function DrawIDStatus(canvas Canvas, pawn Other, int YStart)
 	local string Value1, Value2;
 	local class<WFS_PlayerClassInfo> PCI;
 	local int Armor, MaxArmor;
+	local bool bTargetDisguised;
 
 	Value1 = string(Other.Health);
 	Armor = GetArmorValue(Other);
 	Value2 = string(Armor);
 
-	PCI = class'WFS_PlayerClassInfo'.static.GetPCIFor(Other);
+	bTargetDisguised = class'WFDisguise'.static.IsDisguised(IdentifyTarget);
+
+	if (bTargetDisguised && (IdentifyTarget.Team != PawnOwner.PlayerReplicationInfo.Team))
+	{
+		PCI = GetDisguisedPCI(IdentifyTarget);
+		if (PCI != None)
+		{
+			Armor = PCI.default.Armor;
+			if (PCI.default.MaxArmor > 0)
+				Armor = PCI.default.Armor;
+			Value1 = string(PCI.default.Health);
+			Value2 = string(Armor);
+		}
+	}
+	else PCI = class'WFS_PlayerClassInfo'.static.GetPCIFor(Other);
+
 	if (PCI != None)
 	{
 		if (PCI.default.Armor > 0)
@@ -450,6 +518,29 @@ function float GetLongestStringWidth(canvas Canvas, optional bool bIncludeTitle)
 	}
 
 	return best;
+}
+
+simulated function SetIDColor( Canvas Canvas, int type )
+{
+	local byte Team;
+
+	if (class'WFDisguise'.static.IsDisguised(IdentifyTarget))
+		Team = PawnOwner.PlayerReplicationInfo.Team;
+	else Team = IdentifyTarget.Team;
+
+	if (Team > 3)
+	{
+		if (type == 0)
+			Canvas.DrawColor = WhiteColor * 0.5 * 0.333 * IdentifyFadeTime;
+		else
+			Canvas.DrawColor = WhiteColor * 0.333 * IdentifyFadeTime;
+		return;
+	}
+
+	if ( type == 0 )
+		Canvas.DrawColor = AltTeamColor[Team] * 0.333 * IdentifyFadeTime;
+	else
+		Canvas.DrawColor = TeamColor[Team] * 0.333 * IdentifyFadeTime;
 }
 
 exec function ShowHints()

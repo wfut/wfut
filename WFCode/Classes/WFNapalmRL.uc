@@ -143,7 +143,7 @@ defaultproperties
 	BobDamping=0.975000
 	PickupViewMesh=LodMesh'Botpack.Eight2Pick'
 	ThirdPersonMesh=LodMesh'Botpack.EightHand'
-	StatusIcon=Texture'Botpack.Icons.Use8ball'
+	StatusIcon=Texture'WFMedia.WeaponNapalmRocketLauncher'
 	PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
 	Icon=Texture'Botpack.Icons.Use8ball'
 	Mesh=LodMesh'Botpack.Eight2Pick'

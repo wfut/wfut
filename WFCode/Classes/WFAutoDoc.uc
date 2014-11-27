@@ -1,7 +1,7 @@
 //=============================================================================
 // WFAutoDoc.
 //=============================================================================
-class WFAutoDoc extends TournamentPickup;
+class WFAutoDoc extends WFPickup;
 
 var() int HealingDelay;
 var() int HealingAmount;

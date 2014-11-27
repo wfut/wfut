@@ -17,12 +17,6 @@ var bool bWeaponDisguised;
 var class<Weapon> DisguiseClass;
 var WFDisguise MainDisguise;
 
-/*replication
-{
-	reliable if (bNetOwner && (Role == ROLE_Authority))
-		bWeaponDisguised, DisguiseClass;
-}*/
-
 function GiveTo(pawn Other)
 {
 	super.GiveTo(Other);
@@ -34,23 +28,14 @@ simulated function PlayFiring()
 {
 	PlayAnim( 'Fire1', 0.9, 0.05 );
 	PlayOwnedSound(FireSound, SLOT_None, 1.7*Pawn(Owner).SoundDampening);
-	// NOTE: animation *must* finish, ie. use PlayAnim, or TweenAnim
 }
 
 simulated function PlayAltFiring()
 {
-	// play owned sound
-	//PlayOwnedSound(AltFireSound, SLOT_Misc, 1.7*Pawn(Owner).SoundDampening);
-	// play anim
-
-	//PlayAnim( 'Fire2', 0.9, 0.05 );
-
-	// NOTE: animation *must* finish, ie. use PlayAnim, or TweenAnim
 }
 
 simulated function PlayRecharging()
 {
-	// NOTE: animation *must* finish, ie. use PlayAnim, or TweenAnim
 	PlayOwnedSound(RechargeSound, SLOT_None, 1.7*Pawn(Owner).SoundDampening);
 
 	PlayAnim( 'recharge', 0.2, 0.05 );
@@ -77,6 +62,7 @@ function Fire( float Value )
 		MainDisguise.RemoveDisguise();
 	}
 
+	NotifyFired();
 	GotoState('NormalFire');
 	bPointing=True;
 	Pawn(Owner).PlayRecoil(0.25);
@@ -412,7 +398,7 @@ defaultproperties
      PickupViewMesh=LodMesh'taserpick'
      ThirdPersonMesh=LodMesh'taser3rd'
      ThirdPersonScale=0.900000
-     StatusIcon=Texture'Botpack.Icons.UseHammer'
+     StatusIcon=Texture'WFMedia.WeaponTazer'
      PickupSound=Sound'UnrealShare.Pickups.WeaponPickup'
      Icon=Texture'Botpack.Icons.UseHammer'
      bNoSmooth=False
